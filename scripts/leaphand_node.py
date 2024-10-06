@@ -8,68 +8,54 @@ import numpy as np
 
 import importlib
 
+
 class DynamixelReaderNode(Node):
     def __init__(self):
         super().__init__("dynamixel_reader_node")
 
-        # Declare and get parameters from the parameter server
+        # Declare parameters with default values
+        self.declare_parameter("joint_command_topic", "")
+        self.declare_parameter("joint_feedback_topic", "")
+        self.declare_parameter('hand_name', 'dom')
+        self.declare_parameter('baudrate', 3000000)
+        self.declare_parameter('device_name', '/dev/serial/by-id/usb-FTDI_USB__-__Serial_Converter_FT8ISZ8Z-if00-port0')
+        self.declare_parameter('pub_pos', True)
+        self.declare_parameter('pub_vel', False)
+        self.declare_parameter('pub_current', False)
+        self.declare_parameter('kP', 500)
+        self.declare_parameter('kI', 0)
+        self.declare_parameter('kD', 200)
+        self.declare_parameter('curr_lim', 2000)
+        self.declare_parameter('start_pos', [0.0]*16)  # Initial positions for the motors
+
+        # Get parameters from the parameter server
         self.joint_command_topic = (
-            self.declare_parameter(
-                "joint_command_topic", "/leap/dynamixel_joint_states"
-            )
-            .get_parameter_value()
-            .string_value
+            self.get_parameter("joint_command_topic").get_parameter_value().string_value
         )
-
         self.joint_feedback_topic = (
-            self.declare_parameter("joint_feedback_topic", "/leap/command_joint_states")
+            self.get_parameter("joint_feedback_topic")
             .get_parameter_value()
             .string_value
         )
-
         self.baudrate = (
-            self.declare_parameter("baudrate", 3000000)
-            .get_parameter_value()
-            .integer_value
+            self.get_parameter("baudrate").get_parameter_value().integer_value
         )
-
         self.device_name = (
-            self.declare_parameter(
-                "device_name",
-                "/dev/serial/by-id/usb-FTDI_USB__-__Serial_Converter_FT8ISZ8Z-if00-port0",
-            )
-            .get_parameter_value()
-            .string_value
+            self.get_parameter("device_name").get_parameter_value().string_value
         )
-
-        self.pub_pos = (
-            self.declare_parameter("pub_pos", True).get_parameter_value().bool_value
-        )
-
-        self.pub_vel = (
-            self.declare_parameter("pub_vel", False).get_parameter_value().bool_value
-        )
-
+        self.pub_pos = self.get_parameter("pub_pos").get_parameter_value().bool_value
+        self.pub_vel = self.get_parameter("pub_vel").get_parameter_value().bool_value
         self.pub_current = (
-            self.declare_parameter("pub_current", False)
-            .get_parameter_value()
-            .bool_value
+            self.get_parameter("pub_current").get_parameter_value().bool_value
         )
-
-        self.kP = self.declare_parameter("kP", 500).get_parameter_value().integer_value
-
-        self.kI = self.declare_parameter("kI", 0).get_parameter_value().integer_value
-
-        self.kD = self.declare_parameter("kD", 200).get_parameter_value().integer_value
-
+        self.kP = self.get_parameter("kP").get_parameter_value().integer_value
+        self.kI = self.get_parameter("kI").get_parameter_value().integer_value
+        self.kD = self.get_parameter("kD").get_parameter_value().integer_value
         self.curr_lim = (
-            self.declare_parameter("curr_lim", 2000).get_parameter_value().integer_value
+            self.get_parameter("curr_lim").get_parameter_value().integer_value
         )
-
         self.start_pos = (
-            self.declare_parameter("start_pos", [0.0] * 16)
-            .get_parameter_value()
-            .double_array_value
+            self.get_parameter("start_pos").get_parameter_value().double_array_value
         )
 
         self.curr_pos = self.start_pos
