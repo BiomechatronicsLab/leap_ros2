@@ -1,4 +1,3 @@
-hand_name: "dom"
 baudrate: 4000000
 device_name: "/dev/ttyUSB0"
 pub_pos: true
@@ -9,3 +8,5 @@ kI: 0
 kD: 200
 curr_lim: 5000
 start_pos: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+joint_feedback_topic: /dom/dynamixel_joint_states
+joint_command_topic: /dom/command_joint_states

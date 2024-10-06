@@ -1,7 +1,8 @@
 baudrate: 4000000
 curr_lim: 5000
 device_name: /dev/serial/by-id/usb-FTDI_USB__-__Serial_Converter_FT8ISZ8G-if00-port0
-hand_name: dom
+joint_feedback_topic: /dom/dynamixel_joint_states
+joint_command_topic: /dom/command_joint_states
 kD: 200
 kI: 0
 kP: 600
