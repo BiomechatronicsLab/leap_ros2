@@ -22,7 +22,6 @@ class DynamixelControlNode(Node):
         self.hand_side = self.get_parameter('hand_side').get_parameter_value().string_value
 
         # Define positions to command
-        # New leaphand  
         self.positions_to_command = [
             [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
             [1.144, 0.616, -12.584, -4.664, 0.0, 1.936, -22.352, -1.408, 4.136, -4.928, -26.664, 17.776, 81.312, -27.368, 65.736, 55.0],
