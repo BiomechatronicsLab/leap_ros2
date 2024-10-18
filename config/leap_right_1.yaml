@@ -8,20 +8,4 @@ kP: 600
 pub_current: false
 pub_pos: true
 pub_vel: false
-start_pos:
-- 0
-- 0
-- 0
-- 0
-- 0
-- 0
-- 0
-- 0
-- 0
-- 0
-- 0
-- 0
-- 0
-- 0
-- 0
-- 0
+start_pos: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]

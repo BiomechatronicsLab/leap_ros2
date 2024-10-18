@@ -11,7 +11,7 @@ class JointOscillatorNode(Node):
     def __init__(self):
         super().__init__('joint_oscillator_node')
 
-        self.publisher = self.create_publisher(JointState, 'command_joint_states', 10)
+        self.publisher = self.create_publisher(JointState, '/dom/command_joint_states', 10)
         
         self.joint_angles = [0.0] * 16  # Initial joint angles
 
