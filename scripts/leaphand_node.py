@@ -24,7 +24,7 @@ class DynamixelReaderNode(Node):
         self.declare_parameter('kI', 0)
         self.declare_parameter('kD', 200)
         self.declare_parameter('curr_lim', 2000)
-        self.declare_parameter('start_pos', [0]*16)  # Initial positions for the motors
+        self.declare_parameter('start_pos', [0.0]*16)  # Initial positions for the motors
 
         # Get parameters from the parameter server
         self.hand_name = self.get_parameter('hand_name').get_parameter_value().string_value
