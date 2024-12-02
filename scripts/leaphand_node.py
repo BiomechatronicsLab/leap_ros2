@@ -8,7 +8,6 @@ import numpy as np
 
 import importlib
 
-
 class DynamixelReaderNode(Node):
     def __init__(self):
         super().__init__("dynamixel_reader_node")
