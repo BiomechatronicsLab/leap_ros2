@@ -23,8 +23,14 @@
     <exec_depend>python3-yaml</exec_depend>
     <exec_depend>ros2launch</exec_depend>
 
+    <!--unit tests -->
+    <test_depend>ament_cmake_pytest</test_depend>
+    <test_depend>pytest</test_depend>
+
     <export>
         <build_type>ament_cmake</build_type>
     </export>
+
+
 
 </package>
