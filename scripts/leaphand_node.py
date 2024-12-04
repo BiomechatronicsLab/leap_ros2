@@ -12,6 +12,7 @@ class DynamixelReaderNode(Node):
     def __init__(self):
         super().__init__("dynamixel_reader_node")
 
+        print("I AM IN THE DYNAMIXEL READER NODE!!!")
         # Declare and get parameters from the parameter server
         self.joint_command_topic = (
             self.declare_parameter(
@@ -36,7 +37,7 @@ class DynamixelReaderNode(Node):
         self.device_name = (
             self.declare_parameter(
                 "device_name",
-                "/dev/serial/by-id/usb-FTDI_USB__-__Serial_Converter_FT8ISZ8Z-if00-port0",
+                "/dev/serial/by-id/usb-FTDI_USB__-__Serial_Converter_FT8ISZ8G-if00-port0",
             )
             .get_parameter_value()
             .string_value
@@ -196,7 +197,7 @@ class DynamixelReaderNode(Node):
         # Close port
         if self.port_handler.is_open:
             self.port_handler.closePort()
-
+        
     def initialize_gains(self):
         try:
             # Enable torque for all motors
