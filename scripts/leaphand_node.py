@@ -16,14 +16,14 @@ class DynamixelReaderNode(Node):
         # Declare and get parameters from the parameter server
         self.joint_command_topic = (
             self.declare_parameter(
-                "joint_command_topic", "/leap/dynamixel_joint_states"
+                "joint_command_topic", "/leap/command_joint_states"
             )
             .get_parameter_value()
             .string_value
         )
 
         self.joint_feedback_topic = (
-            self.declare_parameter("joint_feedback_topic", "/leap/command_joint_states")
+            self.declare_parameter("joint_feedback_topic", "/leap/dynamixel_joint_states")
             .get_parameter_value()
             .string_value
         )

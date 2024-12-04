@@ -1,14 +1,29 @@
 #!/usr/bin/env python3
 import pytest
 import dynamixel_sdk as dxl
+import os
+import yaml
+from ament_index_python.packages import get_package_share_directory
+
+
+# GLOBAL VARIABLES
+config_directory = os.path.join(get_package_share_directory('leap_ros2'), 'config')
+config_file_path = os.path.join(config_directory, "test_params.yaml")
+
+def load_yaml_file(file_path):
+    # Print the path to the YAML file
+    print(f"Loading configuration from: {file_path}")
+
+    with open(file_path, 'r') as file:
+        return yaml.safe_load(file)
 
 class TestDynamixelConnection:
     
     def setup_method(self):
+        config_params = load_yaml_file(config_file_path)
+
         # Setup device name and protocol version
-        self.device_name = (
-            "/dev/serial/by-id/usb-FTDI_USB__-__Serial_Converter_FT8ISZ8G-if00-port0"
-        )
+        self.device_name = config_params["device_name"]
         self.PROTOCOL_VERSION = 2.0
         
         # Initialize PortHandler and PacketHandler instances

@@ -54,9 +54,13 @@ ament_package()
 
 if(BUILD_TESTING)
   # Python unit tests
+  # find_package(ament_cmake_ros REQUIRED)
+  # find_package(launch_testing_ament_cmake REQUIRED)
+  
   find_package(ament_cmake_pytest REQUIRED)
+
   set(_pytest_tests
-    test/test_dynamixel_connection.py
+    test/test_u2d2_connection.py
   )
   foreach(_test_path ${_pytest_tests})
     get_filename_component(_test_name ${_test_path} NAME_WE)
@@ -70,6 +74,8 @@ if(BUILD_TESTING)
   find_package(ament_cmake_ros REQUIRED)
   find_package(launch_testing_ament_cmake REQUIRED)
   add_launch_test(test/test_leap_connection_unit_test.py)
+  add_launch_test(test/test_leap_connection_topics.py)
+
 
   # function(add_ros_isolated_launch_test path)
   #   set(RUNNER "${ament_cmake_ros_DIR}/run_test_isolated.py")

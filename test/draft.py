@@ -1,9 +1,10 @@
 # test_example.py
 import pytest
 import launch_testing
+import launch_pytest
+from launch_pytest.tools import process as process_tools
 
 import launch
-import launch_pytest
 import launch_ros
 import rclpy
 
@@ -15,8 +16,10 @@ from rclpy.node import Node
 from std_msgs.msg import String
 from sensor_msgs.msg import JointState
 
+
+    
 @launch_pytest.fixture
-def generate_test_description():
+def launch_description():
     return LaunchDescription([
         launch_ros.actions.Node(
             package='leap_ros2',  # Replace with your package name
@@ -41,7 +44,7 @@ class TestSubscriber(Node):
     def listener_callback(self, msg):
         self.received_message = msg.data
 
-@pytest.mark.launch(fixture=generate_test_description)
+@pytest.mark.launch(fixture=launch_description)
 def test_publisher_output():
     with rclpy.init():
         node = TestSubscriber()
