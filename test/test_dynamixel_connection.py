@@ -7,7 +7,7 @@ class TestDynamixelConnection:
     def setup_method(self):
         # Setup device name and protocol version
         self.device_name = (
-            "/dev/serial/by-id/usb-FTDI_USB__-__Serial_Converter_FT4NQ6SW-if00-port0"
+            "/dev/serial/by-id/usb-FTDI_USB__-__Serial_Converter_FT8ISZ8G-if00-port0"
         )
         self.PROTOCOL_VERSION = 2.0
         
