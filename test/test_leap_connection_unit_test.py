@@ -1,9 +1,7 @@
 # test_example.py
 import pytest
 import launch_testing
-import time
-
-import launch
+import launch_testing.markers
 import launch_ros
 import rclpy
 
@@ -13,8 +11,9 @@ from launch import LaunchDescription
 # from launch_ros.actions import LaunchNode
 from rclpy.node import Node
 from sensor_msgs.msg import JointState
-from launch.actions import Shutdown
 
+@pytest.mark.launch_test
+@launch_testing.markers.keep_alive
 def generate_test_description():
     return LaunchDescription([
         launch_ros.actions.Node(
@@ -25,7 +24,6 @@ def generate_test_description():
         ),
         launch_testing.actions.ReadyToTest()
     ])
-
 class TestSubscriber(Node):
     def __init__(self):
         super().__init__('test_subscriber_node')
@@ -39,7 +37,6 @@ class TestSubscriber(Node):
 
     def listener_callback(self, msg):
         self.received_message = msg
-
 class TestLeapHand(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -48,9 +45,6 @@ class TestLeapHand(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         rclpy.shutdown()
-        # shutdown_action = Shutdown(reason='Shutting down after test completion')
-        # shutdown_action.execute(context=None)
-
 
     def setUp(self):
         self.node = TestSubscriber()
@@ -61,8 +55,10 @@ class TestLeapHand(unittest.TestCase):
     def test_publishes_pose(self):
         """Check whether pose messages published"""
         print("IN UNIT TEST!")
-        rclpy.spin_once(self.node, timeout_sec=10.0)
+        rclpy.spin_once(self.node, timeout_sec=3.0)
         assert self.node.received_message is not None, "Cannot hear subscription from Leap Hand" 
+
+        
 
 # @launch_testing.post_shutdown_test()
 # class TestShutdown(unittest.TestCase):
