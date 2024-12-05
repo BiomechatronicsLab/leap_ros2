@@ -4,6 +4,7 @@ import launch_testing
 import launch_testing.markers
 import launch_ros
 import rclpy
+import os
 
 import unittest
 
@@ -15,6 +16,8 @@ from sensor_msgs.msg import JointState
 @pytest.mark.launch_test
 @launch_testing.markers.keep_alive
 def generate_test_description():
+    os.environ['ROS_DOMAIN_ID'] = '42'
+
     return LaunchDescription([
         launch_ros.actions.Node(
             package='leap_ros2',  # Replace with your package name

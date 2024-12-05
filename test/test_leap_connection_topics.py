@@ -30,6 +30,8 @@ def load_yaml_file(file_path):
 @launch_testing.markers.keep_alive
 def generate_test_description():
 
+    # Set an arbitrary ROS_DOMAIN_ID so that the test is performed without inteference
+    os.environ['ROS_DOMAIN_ID'] = '42'
     # Load parameters from the YAML file
     config_params = load_yaml_file(config_file_path)
 
