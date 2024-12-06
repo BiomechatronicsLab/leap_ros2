@@ -53,10 +53,7 @@ ament_package()
 ########
 
 if(BUILD_TESTING)
-  # Python unit tests
-  # find_package(ament_cmake_ros REQUIRED)
-  # find_package(launch_testing_ament_cmake REQUIRED)
-  
+  # Python unit tests  
   find_package(ament_cmake_pytest REQUIRED)
 
   set(_pytest_tests
