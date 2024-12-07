@@ -61,7 +61,6 @@ class TestLeapHand(unittest.TestCase):
         rclpy.spin_once(self.node, timeout_sec=3.0)
         assert self.node.received_message is not None, "Cannot hear subscription from Leap Hand" 
 
-        
 
 # @launch_testing.post_shutdown_test()
 # class TestShutdown(unittest.TestCase):

@@ -40,17 +40,8 @@ class TestDynamixelConnection(unittest.TestCase):
         # Attempt to open the port
         port_open = self.port_handler.openPort()
 
-        print("TESTING!!!!")
         # Test if the port is open
         self.assertTrue(port_open, "Failed to open port")
-
-        # Uncomment and implement ping testing if needed:
-        # motor_id = 1  # Use the appropriate motor ID
-        # comm_result, error, model_number = self.packet_handler.ping(self.port_handler, motor_id)
-        # print(f"Ping Response: comm_result={comm_result}, error={error}, model_number={model_number}")
-        # self.assertEqual(comm_result, 0, "Ping failed: Communication error")
-        # self.assertEqual(error, 0, f"Ping failed: Motor error {error}")
-        # self.assertGreater(model_number, 0, "Ping failed: Invalid model number")
 
 
 if __name__ == '__main__':
