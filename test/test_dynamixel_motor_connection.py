@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
-import pytest
-import dynamixel_sdk as dxl
+import unittest
 import os
 import yaml
 from ament_index_python.packages import get_package_share_directory
-
+from scripts.dynamixel_driver import DynamixelDriver
 
 # GLOBAL VARIABLES
 config_directory = os.path.join(get_package_share_directory('leap_ros2'), 'config')
@@ -13,44 +12,37 @@ config_file_path = os.path.join(config_directory, "test_params.yaml")
 def load_yaml_file(file_path):
     # Print the path to the YAML file
     print(f"Loading configuration from: {file_path}")
-
     with open(file_path, 'r') as file:
         return yaml.safe_load(file)
 
-class TestDynamixelConnection:
+class TestDynamixelConnection(unittest.TestCase):
     
-    def setup_method(self):
-        config_params = load_yaml_file(config_file_path)
+    def setUp(self):
+        # Load configuration parameters
+        self.config_params = load_yaml_file(config_file_path)
 
-        # Setup device name and protocol version
-        self.device_name = config_params["device_name"]
-        self.PROTOCOL_VERSION = 2.0
-        
-        # Initialize PortHandler and PacketHandler instances
-        self.port_handler = dxl.PortHandler(self.device_name)
-        self.packet_handler = dxl.PacketHandler(self.PROTOCOL_VERSION)
-        
-        # Attempt to open the port
-        
-        # # Set the baud rate for communication (adjust as needed)
-        # self.baudrate = 3000000
-        # if self.port_open:
-        #     self.port_handler.setBaudRate(self.baudrate)
+        self.dynamixel_manager = DynamixelDriver(list(range(16)), self.config_params["baud_rate"],
+                                            self.config_params["device_name"],
+                                            self.config_params["kP"],
+                                            self.config_params["kI"],
+                                            self.config_params["kD"],
+                                            self.config_params["curr_lim"],
+                                               )
+    def tearDown(self):
+        # Close the port if it's open
+        if self.dynamixel_manager.port_handler:
+            self.dynamixel_manager.port_handler.closePort()
 
-    def test_connection_success(self):
-        port_open = self.port_handler.openPort()
-        # Test if the port is open
-        assert port_open, "Failed to open port"
-        
-        # TODO: Not sure why the ping is not working... would have to look more into it.
+    def test_motor_connection(self):
+        packet_handler = self.dynamixel_manager.packet_handler
+        port_handler = self.dynamixel_manager.port_handler
 
-        # # Test if the motor responds to a ping (this assumes you have a motor ID, for example 1)
-        # motor_id = 1  # Use the appropriate motor ID
-        # comm_result, error, model_number = self.packet_handler.ping(self.port_handler, motor_id)
-        
-        # print(f"Ping Response: comm_result={comm_result}, error={error}, model_number={model_number}")
+        for motor_id in self.dynamixel_manager.motor_ids:
+            print(motor_id) # Models 0-15 in the leap_hand! 
+            model_number, comm_result, error = packet_handler.ping(port_handler, motor_id)
+            self.assertEqual(model_number, 1200, "Ping failed: Invalid model number") # Specific ID for the dynamixel
+            self.assertEqual(comm_result, 0, "Ping failed: Communication error")
+            self.assertEqual(error, 0, f"Ping failed: Motor error {error}")
 
-        # # Assert successful communication
-        # assert comm_result == 0, "Ping failed: Communication error"
-        # assert error == 0, f"Ping failed: Motor error {error}"
-        # assert model_number > 0, "Ping failed: Invalid model number"
+if __name__ == '__main__':
+    unittest.main()

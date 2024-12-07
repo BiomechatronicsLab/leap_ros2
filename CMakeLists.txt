@@ -17,11 +17,11 @@ install(PROGRAMS ${SCRIPT_FILES}
   DESTINATION lib/${PROJECT_NAME}
 )
 
-# Install Python scripts in the tests directory
-file(GLOB SCRIPT_FILES test/*.py)
-install(PROGRAMS ${SCRIPT_FILES}
-  DESTINATION lib/${PROJECT_NAME}
-)
+# # Install Python scripts in the tests directory
+# file(GLOB SCRIPT_FILES test/*.py)
+# install(PROGRAMS ${SCRIPT_FILES}
+#   DESTINATION lib/${PROJECT_NAME}
+# )
 
 # Install all Python scripts in the launch directory (if any)
 file(GLOB LAUNCH_SCRIPTS launch/*.py)
@@ -58,6 +58,8 @@ if(BUILD_TESTING)
 
   set(_pytest_tests
     test/test_u2d2_connection.py
+    test/test_dynamixel_motor_connection.py
+    test/test_dynamixel_registers.py
   )
   foreach(_test_path ${_pytest_tests})
     get_filename_component(_test_name ${_test_path} NAME_WE)
