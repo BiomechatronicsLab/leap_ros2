@@ -3,7 +3,9 @@ import unittest
 import os
 import yaml
 from ament_index_python.packages import get_package_share_directory
-from scripts.dynamixel_driver import DynamixelDriver
+from dynamixel_driver.XC330_M288_manager import XC330M288Manager
+from dynamixel_driver.XL330_M288_manager import XL330M288Manager
+
 import numpy as np
 import time
 import pytest
@@ -25,15 +27,24 @@ class TestDynamixelConnection(unittest.TestCase):
         # Load configuration parameters
         self.config_params = load_yaml_file(config_file_path)
         self.motor_ids = list(range(16))
-        self.dynamixel_manager = DynamixelDriver(self.motor_ids, self.config_params["baud_rate"],
-                                            self.config_params["device_name"],
-                                            self.config_params["kP"],
-                                            self.config_params["kI"],
-                                            self.config_params["kD"],
-                                            self.config_params["curr_lim"],
-                                               )
-        self.dynamixel_manager.initialize_gains()
 
+        if self.config_params["dynamixel_type"] == "XC330-M288":
+            self.dynamixel_manager = XC330M288Manager(self.motor_ids, self.config_params["baud_rate"],
+                                                self.config_params["device_name"],
+                                                self.config_params["kP"],
+                                                self.config_params["kI"],
+                                                self.config_params["kD"],
+                                                self.config_params["curr_lim"],
+                                                )
+        elif self.config_params["dynamixel_type"] == "XL330-M288":
+            self.dynamixel_manager = XL330M288Manager(self.motor_ids, self.config_params["baud_rate"],
+                                                self.config_params["device_name"],
+                                                self.config_params["kP"],
+                                                self.config_params["kI"],
+                                                self.config_params["kD"],
+                                                self.config_params["curr_lim"],
+                                                )
+            
     @classmethod
     def tearDownClass(self):
         # Close the port if it's open
@@ -88,7 +99,7 @@ class TestDynamixelConnection(unittest.TestCase):
         test_torque_enable = self.dynamixel_manager.get_torque_enable(self.motor_ids)
         self.assertEqual(truth_torque_enable.tolist(), test_torque_enable)
 
-    @pytest.mark.run(order=8)
+    # @pytest.mark.run(order=8)
     def test_position(self):
         # Command Position!
         truth_goal_position_deg = np.ones(len(self.motor_ids)) * 15.0
@@ -143,10 +154,13 @@ class TestDynamixelConnection(unittest.TestCase):
             position_comparison = [abs(a - b) for a, b in zip(truth_goal_position_deg, test_position_deg)]
             comparison_result = [comparison < tolerance for comparison in position_comparison]
            
+            # hardware_status = self.dynamixel_manager.get_hardware_error_status(self.motor_ids)
+
             print(truth_goal_position_deg)
             print(test_position_deg)
             print(position_comparison)
             print(comparison_result)
+            # print(hardware_status)
             print("------------------------------------")
             # Assert that all elements in comparison_result are True
             self.assertTrue(all(comparison_result))  # This will pass only if all values are True
