@@ -1,6 +1,7 @@
 baud_rate: 3000000
-curr_lim: 1750 # This is MAXED OUT AT 1750
-device_name: /dev/serial/by-id/usb-FTDI_USB__-__Serial_Converter_FT4NQ6SW-if00-port0
+curr_lim: 1750 
+device_name: /dev/serial/by-id/usb-FTDI_USB__-__Serial_Converter_FT8ISZ8G-if00-port0
+dynamixel_type: "XC330-M288"
 kD: 200
 kI: 0
 kP: 600

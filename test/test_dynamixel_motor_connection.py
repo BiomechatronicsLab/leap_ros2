@@ -3,7 +3,8 @@ import unittest
 import os
 import yaml
 from ament_index_python.packages import get_package_share_directory
-from scripts.dynamixel_driver import DynamixelDriver
+from dynamixel_driver.XC330_M288_manager import XC330M288Manager
+from dynamixel_driver.XL330_M288_manager import XL330M288Manager
 
 # GLOBAL VARIABLES
 config_directory = os.path.join(get_package_share_directory('leap_ros2'), 'config')
@@ -21,13 +22,23 @@ class TestDynamixelConnection(unittest.TestCase):
         # Load configuration parameters
         self.config_params = load_yaml_file(config_file_path)
 
-        self.dynamixel_manager = DynamixelDriver(list(range(16)), self.config_params["baud_rate"],
-                                            self.config_params["device_name"],
-                                            self.config_params["kP"],
-                                            self.config_params["kI"],
-                                            self.config_params["kD"],
-                                            self.config_params["curr_lim"],
-                                               )
+        if self.config_params["dynamixel_type"] == "XC330-M288":
+            self.dynamixel_manager = XC330M288Manager(list(range(16)), self.config_params["baud_rate"],
+                                                self.config_params["device_name"],
+                                                self.config_params["kP"],
+                                                self.config_params["kI"],
+                                                self.config_params["kD"],
+                                                self.config_params["curr_lim"],
+                                                )
+        elif self.config_params["dynamixel_type"] == "XL330-M288":
+            self.dynamixel_manager = XL330M288Manager(list(range(16)), self.config_params["baud_rate"],
+                                                self.config_params["device_name"],
+                                                self.config_params["kP"],
+                                                self.config_params["kI"],
+                                                self.config_params["kD"],
+                                                self.config_params["curr_lim"],
+                                                )
+
     def tearDown(self):
         # Close the port if it's open
         if self.dynamixel_manager.port_handler:
@@ -38,9 +49,9 @@ class TestDynamixelConnection(unittest.TestCase):
         port_handler = self.dynamixel_manager.port_handler
 
         for motor_id in self.dynamixel_manager.motor_ids:
-            print(motor_id) # Models 0-15 in the leap_hand! 
+            print(motor_id) # Print motor_ids
             model_number, comm_result, error = packet_handler.ping(port_handler, motor_id)
-            self.assertEqual(model_number, 1200, "Ping failed: Invalid model number") # Specific ID for the dynamixel
+            self.assertEqual(model_number, self.dynamixel_manager.model_number, "Ping failed: Invalid model number") # Specific ID for the dynamixel
             self.assertEqual(comm_result, 0, "Ping failed: Communication error")
             self.assertEqual(error, 0, f"Ping failed: Motor error {error}")
 
