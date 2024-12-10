@@ -3,6 +3,7 @@ import unittest
 import os
 import yaml
 from ament_index_python.packages import get_package_share_directory
+import dynamixel_driver
 from dynamixel_driver.XC330_M288_manager import XC330M288Manager
 from dynamixel_driver.XL330_M288_manager import XL330M288Manager
 
