@@ -92,7 +92,7 @@ class TestLeapHand(unittest.TestCase):
         config_params = load_yaml_file(config_file_path)
         print(config_params)
         for param_name in config_params:
-            param_value = call_get_parameters(node=node_name, parameter_names=param_name)
+            param_value = call_get_parameters(node_name, parameter_names=param_name)
             self.assertEquals(param_value, config_params[param_name], "Parameter in the config file does not equal that of the node")
             # topic_to_check = config_params["joint_command_topic"]
             # rclpy.spin_once(self.node, timeout_sec=3.0)
