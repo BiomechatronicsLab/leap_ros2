@@ -58,9 +58,10 @@ if(BUILD_TESTING)
 
   set(_pytest_tests
     test/test_u2d2_connection.py
+    test/test_leap_motor_connection.py
+    test/test_leap_registers.py
     test/test_leap_connection_topics.py
-    test/test_dynamixel_motor_connection.py
-    test/test_dynamixel_registers.py
+    test/test_leap_joint_state_msg.py
   )
   foreach(_test_path ${_pytest_tests})
     get_filename_component(_test_name ${_test_path} NAME_WE)

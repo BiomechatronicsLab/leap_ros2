@@ -1,5 +1,4 @@
 baud_rate: 3000000
-curr_lim: 1750 
 device_name: /dev/serial/by-id/usb-FTDI_USB__-__Serial_Converter_FT8ISZ8G-if00-port0
 dynamixel_type: "XC330-M288"
 kD: 200
