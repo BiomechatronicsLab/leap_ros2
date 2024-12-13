@@ -1,7 +1,4 @@
 #!/usr/bin/env python3
-from ament_index_python.packages import get_package_share_directory
-# GLOBAL VARIABLES
-
 def test_motor_connection(dynamixel_manager):
     packet_handler = dynamixel_manager.packet_handler
     port_handler = dynamixel_manager.port_handler
