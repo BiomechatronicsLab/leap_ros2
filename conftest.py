@@ -8,7 +8,6 @@ from dynamixel_driver.XL330_M288_manager import XL330M288Manager
 config_directory = os.path.join(get_package_share_directory("leap_ros2"), "config")
 config_file_path = os.path.join(config_directory, "test_params.yaml")
 
-
 @pytest.fixture(scope="function")
 def config_params():
     print(f"Loading configuration from: {config_file_path}")

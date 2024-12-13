@@ -1,25 +1,10 @@
 import pytest
 import launch_pytest
-# import launch_testing
-# import launch_testing.markers
-
 import os
-import yaml
-from ament_index_python.packages import get_package_share_directory
-
 import launch_ros
 import rclpy
-
-import unittest
 from launch import LaunchDescription
-
-# from launch_ros.actions import LaunchNode
 from rclpy.node import Node
-
-# GLOBAL VARIABLES
-config_directory = os.path.join(get_package_share_directory("leap_ros2"), "config")
-config_file_path = os.path.join(config_directory, "test_params.yaml")
-
 
 class TopicChecker(Node):
     def __init__(self):
@@ -32,7 +17,6 @@ class TopicChecker(Node):
             if topic == topic_name:
                 return True
         return False
-
 
 @pytest.fixture(autouse=True, scope="session")
 def initialize_rclpy():
