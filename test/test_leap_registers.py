@@ -12,11 +12,9 @@ baud_rate_1M_enum = 3 # Equivalent to 1M [bps]
 
 # Helper Function
 def command_and_check_position(dynamixel_manager, truth_goal_position_deg, tolerance_deg):
-    truth_goal_position_ticks = dynamixel_manager.degrees_to_ticks_list(truth_goal_position_deg)
-    dynamixel_manager.set_goal_position(dynamixel_manager.motor_ids, truth_goal_position_ticks)
+    dynamixel_manager.set_goal_position_deg(dynamixel_manager.motor_ids, truth_goal_position_deg)
     time.sleep(0.5)
-    test_position_ticks = dynamixel_manager.get_position(dynamixel_manager.motor_ids)
-    test_position_deg = dynamixel_manager.ticks_to_degrees_list(test_position_ticks)
+    test_position_deg = dynamixel_manager.get_position_deg(dynamixel_manager.motor_ids)
     print(truth_goal_position_deg)
     print(test_position_deg)
     position_comparison = [abs(a - b) for a, b in zip(truth_goal_position_deg, test_position_deg)]
@@ -97,6 +95,29 @@ def test_max_current_limit(dynamixel_manager):
     assert truth_current_limit.tolist() == test_current_limit, "current_limit did not sature correctly"
     time.sleep(0.1)
 
+def test_current(dynamixel_manager):
+
+    # Test no current to start!
+    truth_current = np.zeros(len(dynamixel_manager.motor_ids))
+    test_current = dynamixel_manager.get_current(dynamixel_manager.motor_ids)
+    print(test_current)
+    assert truth_current.tolist() == test_current, "current should be zero"
+
+    # Test that current reads less than motors rated maximum limit!
+    # TODO: this could be optimized by actually testing with torque control, because unless I set the goal current in 
+    # current_based_position_control, then it actually does not put a hard limit on the current. But it will be less than the maximum...
+
+    dynamixel_manager.set_operating_mode(dynamixel_manager.motor_ids, np.ones(len(dynamixel_manager.motor_ids)) * current_based_position_enum)
+    dynamixel_manager.set_torque_enable(dynamixel_manager.motor_ids, np.ones(len(dynamixel_manager.motor_ids)))
+    max_curr_limit = dynamixel_manager.max_curr_limit
+    goal_position_deg = np.ones(len(dynamixel_manager.motor_ids)) * 10.0
+    dynamixel_manager.set_goal_position_deg(dynamixel_manager.motor_ids, goal_position_deg)
+    time.sleep(2) # let the dynamixel move to the position
+    test_current = dynamixel_manager.get_current(dynamixel_manager.motor_ids)
+    print(test_current)
+    assert all([abs(val) <= max_curr_limit for val in test_current]), "current is less than +- motors maximum current limit"
+    time.sleep(0.1)
+
 def test_torque_enable(dynamixel_manager):
     truth_torque_enable = np.zeros(len(dynamixel_manager.motor_ids))
     dynamixel_manager.set_torque_enable(dynamixel_manager.motor_ids, truth_torque_enable)
@@ -121,7 +142,6 @@ def test_torque_enable(dynamixel_manager):
         [8.184, 3.696, -18.568, 3.168, 95.04, -6.512, -3.344, -20.592, 15.136, -18.128, -24.464, 22.088, 98.384, -78.496, 38.632, -14.96],
         [70.752, -20.328, 24.728, 3.432, 12.144, -6.424, -4.048, -20.592, 14.608, -18.128, -24.464, 22.0, 111.672, -83.776, 40.216, -22.792],
         [4.752, 6.336, -26.664, 3.168, 13.816, -5.72, -26.84, -20.592, 83.952, -13.552, 5.368, 10.12, 82.456, -102.08, 44.616, -30.096],
-        [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
         [80.0, 0.0, 30.0, 15.0, 80.0, 0.0, 30.0, 15.0, 80.0, 0.0, 30.0, 15.0, 100, -85, -10, 60.0], # GRASP
         [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
     ]
@@ -136,7 +156,7 @@ def test_position(dynamixel_manager, truth_goal_position_deg):
 
     dynamixel_manager.set_operating_mode(dynamixel_manager.motor_ids, np.ones(len(dynamixel_manager.motor_ids)) * position_mode_enum)
     dynamixel_manager.set_torque_enable(dynamixel_manager.motor_ids, np.ones(len(dynamixel_manager.motor_ids)))
-    dynamixel_manager.initialize_gains(kP_gains, kI_gains, kD_gains)
+    dynamixel_manager.initialize_gains(dynamixel_manager.motor_ids, kP_gains, kI_gains, kD_gains)
 
     # Command Position!
     assert command_and_check_position(dynamixel_manager, truth_goal_position_deg, tolerance_deg)

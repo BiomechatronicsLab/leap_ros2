@@ -6,6 +6,7 @@ find_package(ament_cmake REQUIRED)
 find_package(rclpy REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
+find_package(ament_cmake_python REQUIRED)
 
 #############
 ## Install ##
@@ -22,6 +23,13 @@ install(PROGRAMS ${SCRIPT_FILES}
 # install(PROGRAMS ${SCRIPT_FILES}
 #   DESTINATION lib/${PROJECT_NAME}
 # )
+
+# install(
+#   DIRECTORY dynamixel_driver/
+#   DESTINATION lib/python${PYTHON_VERSION}/site-packages/${PROJECT_NAME}
+# )
+
+ament_python_install_package(${PROJECT_NAME})
 
 # Install all Python scripts in the launch directory (if any)
 file(GLOB LAUNCH_SCRIPTS launch/*.py)
