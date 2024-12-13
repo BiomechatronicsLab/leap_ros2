@@ -1,10 +1,7 @@
 #!/usr/bin/env python3
 
 import pytest
-import os
-import yaml
 import dynamixel_sdk as dxl
-from ament_index_python.packages import get_package_share_directory
 
 def test_port_connection(config_params):
     """Test to ensure successful connection to Dynamixel device."""

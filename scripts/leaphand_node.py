@@ -29,11 +29,12 @@ class DynamixelReaderNode(Node):
         )
 
         self.baudrate = (
-            self.declare_parameter("baudrate", 3000000)
+            self.declare_parameter("baud_rate", 3000000)
             .get_parameter_value()
             .integer_value
         )
 
+        # TODO: If not specified - error out! 
         self.device_name = (
             self.declare_parameter(
                 "device_name",

@@ -1,7 +1,4 @@
 #!/usr/bin/env python3
-import pytest
-import os
-import yaml
 from ament_index_python.packages import get_package_share_directory
 # GLOBAL VARIABLES
 
