@@ -8,12 +8,14 @@ find_package(std_msgs REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
 find_package(ament_cmake_python REQUIRED)
 
+ament_python_install_package(dynamixel_driver) # Install dynamixel_driver package
+ament_python_install_package(${PROJECT_NAME}) # correctly install leap_ros2 package
+
 #############
 ## Install ##
 #############
 
-# Install Python scripts in the scripts directory
-file(GLOB SCRIPT_FILES scripts/*.py)
+file(GLOB SCRIPT_FILES leap_ros2/*.py)
 install(PROGRAMS ${SCRIPT_FILES}
   DESTINATION lib/${PROJECT_NAME}
 )
@@ -24,12 +26,6 @@ install(PROGRAMS ${SCRIPT_FILES}
 #   DESTINATION lib/${PROJECT_NAME}
 # )
 
-# install(
-#   DIRECTORY dynamixel_driver/
-#   DESTINATION lib/python${PYTHON_VERSION}/site-packages/${PROJECT_NAME}
-# )
-
-ament_python_install_package(${PROJECT_NAME})
 
 # Install all Python scripts in the launch directory (if any)
 file(GLOB LAUNCH_SCRIPTS launch/*.py)
@@ -71,6 +67,7 @@ if(BUILD_TESTING)
     test/test_leap_connection_topics.py
     test/test_leap_launch_params.py
     test/test_leap_end_to_end.py
+    test/test_leap_node_driver.py
   )
   foreach(_test_path ${_pytest_tests})
     get_filename_component(_test_name ${_test_path} NAME_WE)
