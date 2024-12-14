@@ -10,3 +10,4 @@ start_pos: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
 joint_feedback_topic: /dom/end_eff/dynamixel_joint_states
 joint_command_topic: /dom/end_eff/command_joint_states
 dynamixel_type: "XL330-M288"
+  
