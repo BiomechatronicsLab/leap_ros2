@@ -81,7 +81,7 @@ def leap_position_checker(config_params):
     test_node.destroy_node()
 
 @pytest.mark.launch(fixture=launch_leap_ros2_node)
-def test_params(leap_position_checker):
+def test_leap_end_to_end(leap_position_checker):
     tolerance_deg = 10.0
 
     positions_to_command_deg = [

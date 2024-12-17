@@ -10,8 +10,8 @@ from dynamixel_driver.XL330_M288_manager import XL330M288Manager
 
 import time
 
+# TODO: I don't love this because you have to set your position enums in the leaphand node, when thats a driver specific implementation. TBD what to do.
 POSITION_MODE_ENUM = 3
-
 
 class LeapHandNode(Node):
     def __init__(self, test_flag=False):
@@ -39,23 +39,17 @@ class LeapHandNode(Node):
         self.joint_command_topic = self.get_parameter("joint_command_topic").get_parameter_value().string_value
         self.joint_feedback_topic = self.get_parameter("joint_feedback_topic").get_parameter_value().string_value
         self.baud_rate = self.get_parameter("baud_rate").get_parameter_value().integer_value
-
         self.device_name = self.get_parameter("device_name").get_parameter_value().string_value
-
         if self.device_name == "":
             raise ValueError(
                 "Please state the device_name in the configuration file."
             )
 
-
-        # TODO: If not specified - error out!
         self.dynamixel_type = self.get_parameter("dynamixel_type").get_parameter_value().string_value
-
         if self.dynamixel_type == "":
             raise ValueError(
                 "Please state the dynamixel_type in the configuration file."
             )
-
 
         self.pub_pos = self.get_parameter("pub_pos").get_parameter_value().bool_value
         self.pub_vel = self.get_parameter("pub_vel").get_parameter_value().bool_value

@@ -104,6 +104,7 @@ def test_current(dynamixel_manager):
     assert all([abs(val) <= 10.0 for val in test_current]), "current is greater than resting tolerance" # arbitrary tolerance, based on resting output of motors
 
     # Test that current reads less than motors rated maximum limit!
+    
     # TODO: this could be optimized by actually testing with torque control, because unless I set the goal current in 
     # current_based_position_control, then it actually does not put a hard limit on the current. But it will be less than the maximum...
 
@@ -122,8 +123,6 @@ def test_velocity(dynamixel_manager):
     test_velocity = dynamixel_manager.get_velocity(dynamixel_manager.motor_ids)
     print(test_velocity)
     assert all([abs(val) <= 2.0 for val in test_velocity]), "velocity is practically 0"
-    # dynamixel_manager.set_operating_mode(dynamixel_manager.motor_ids, np.ones(len(dynamixel_manager.motor_ids)) * position_mode_enum)
-    # dynamixel_manager.set_torque_enable(dynamixel_manager.motor_ids, np.ones(len(dynamixel_manager.motor_ids)))
 
     # TODO: could do more work to see if values are changing when moving around...
 
