@@ -20,13 +20,6 @@ install(PROGRAMS ${SCRIPT_FILES}
   DESTINATION lib/${PROJECT_NAME}
 )
 
-# # Install Python scripts in the tests directory
-# file(GLOB SCRIPT_FILES test/*.py)
-# install(PROGRAMS ${SCRIPT_FILES}
-#   DESTINATION lib/${PROJECT_NAME}
-# )
-
-
 # Install all Python scripts in the launch directory (if any)
 file(GLOB LAUNCH_SCRIPTS launch/*.py)
 install(PROGRAMS ${LAUNCH_SCRIPTS}
@@ -45,7 +38,6 @@ install(DIRECTORY config/
   FILES_MATCHING PATTERN "*.yaml"
 )
 
-
 ###################################
 ## ament specific configuration  ##
 ###################################
@@ -62,7 +54,7 @@ if(BUILD_TESTING)
 
   set(_pytest_tests
     test/test_u2d2_connection.py
-    test/test_leap_motor_connection.py
+    test/test_motor_connection.py
     test/test_leap_registers.py
     test/test_leap_connection_topics.py
     test/test_leap_launch_params.py
@@ -77,17 +69,5 @@ if(BUILD_TESTING)
       WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
     )
   endforeach()
-
-  # find_package(ament_cmake_ros REQUIRED)
-  # find_package(launch_testing_ament_cmake REQUIRED)
-  # add_launch_test(test/test_leap_connection_unit_test.py)
-  # add_launch_test(test/test_leap_connection_topics.py)
-
-
-  # function(add_ros_isolated_launch_test path)
-  #   set(RUNNER "${ament_cmake_ros_DIR}/run_test_isolated.py")
-  #   add_launch_test("${path}" RUNNER "${RUNNER}" ${ARGN})
-  # endfunction()
-  # add_ros_isolated_launch_test(test/test_leap_connection_unit_test.py)
 
 endif()
