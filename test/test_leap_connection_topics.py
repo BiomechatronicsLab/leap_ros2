@@ -20,15 +20,16 @@ class TopicChecker(Node):
 
 @pytest.fixture(autouse=True, scope="session")
 def initialize_rclpy():
-    # Set an arbitrary ROS_DOMAIN_ID so that the test is performed without inteference
-    os.environ["ROS_DOMAIN_ID"] = "42"
-
     rclpy.init()
     yield
     rclpy.shutdown()
 
 @launch_pytest.fixture
 def launch_leap_ros2_node(config_params):
+
+    # Set an arbitrary ROS_DOMAIN_ID so that the test is performed without inteference
+    os.environ['ROS_DOMAIN_ID'] = '42'
+
     return LaunchDescription(
         [
             launch_ros.actions.Node(
