@@ -67,9 +67,6 @@ class LeapPositionChecker(Node):
 
 @pytest.fixture(autouse=True, scope="session")
 def initialize_rclpy():
-    # Set an arbitrary ROS_DOMAIN_ID so that the test is performed without inteference
-    os.environ["ROS_DOMAIN_ID"] = "42"
-
     rclpy.init()
     yield
     rclpy.shutdown()

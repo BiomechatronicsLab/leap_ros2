@@ -1,5 +1,5 @@
 baud_rate: 3000000
-device_name: /dev/serial/by-id/usb-FTDI_USB__-__Serial_Converter_FT4NQ6SW-if00-port0
+device_name: /dev/serial/by-id/usb-FTDI_USB__-__Serial_Converter_FT8ISZ8G-if00-port0
 kD: 200
 kI: 0
 kP: 600
@@ -9,4 +9,5 @@ pub_vel: false
 start_pos: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 joint_feedback_topic: /dom/end_eff/dynamixel_joint_states
 joint_command_topic: /dom/end_eff/command_joint_states
-dynamixel_type: "XL330-M288"
+dynamixel_type: "XC330-M288"
+  
