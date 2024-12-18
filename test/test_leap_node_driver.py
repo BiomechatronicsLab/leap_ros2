@@ -310,7 +310,7 @@ def test_leap_node_start_position(leap_ros2_node, parameter_setter, config_param
     executor_sub_and_client.add_node(parameter_setter)
 
     # set the initial conditions that you want (parameters much be a DOUBLE array)
-    truth_start_pos_deg = [80.0, 0.0, 30.0, 15.0, 80.0, 0.0, 30.0, 15.0, 80.0, 0.0, 30.0, 15.0, 100.0, -85.0, -10.0, 60.0] # grasp
+    truth_start_pos_deg = [20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.00, 20.0, 20.0] # grasp
     config_params["start_pos_deg"] = truth_start_pos_deg
 
     param_names_to_check = list(config_params.keys())
