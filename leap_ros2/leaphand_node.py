@@ -84,6 +84,7 @@ class LeapHandNode(Node):
 
         # Initialize gains and operating mode
         # Currently operating mode is only set to position and cannot be changed (TBD!)
+        self.dynamixel_mgr.set_torque_enable(self.dynamixel_mgr.motor_ids, np.zeros(len(self.dynamixel_mgr.motor_ids))) # Disable torques prior to changing settings
         self.dynamixel_mgr.set_operating_mode(self.dynamixel_mgr.motor_ids, np.ones(len(self.dynamixel_mgr.motor_ids)) * POSITION_MODE_ENUM)
         self.dynamixel_mgr.set_torque_enable(self.dynamixel_mgr.motor_ids, np.ones(len(self.dynamixel_mgr.motor_ids)))
         self.initialize_gains()
