@@ -67,6 +67,9 @@ class LeapPositionChecker(Node):
 
 @pytest.fixture(autouse=True, scope="session")
 def initialize_rclpy():
+    # Set an arbitrary ROS_DOMAIN_ID so that the test is performed without inteference
+    os.environ['ROS_DOMAIN_ID'] = '42'
+
     rclpy.init()
     yield
     rclpy.shutdown()
@@ -96,7 +99,7 @@ def test_leap_end_to_end(leap_position_checker):
     
     for positions_deg in positions_to_command_deg:
         leap_position_checker.publish_position(positions_deg)
-        leap_position_checker.spin_for_duration(duration_sec=0.5) # Time for motor to reach position, and to subscribe from leap_node publisher
+        leap_position_checker.spin_for_duration(duration_sec=1.0) # Time for motor to reach position, and to subscribe from leap_node publisher
         position_comparison = [abs(a - b) for a, b in zip(positions_deg, leap_position_checker.feedback_position_deg)]
         print(position_comparison)
         comparison_result = [comparison < tolerance_deg for comparison in position_comparison]
