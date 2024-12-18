@@ -6,8 +6,8 @@ kP: 600
 pub_current: false
 pub_pos: true
 pub_vel: false
-start_pos: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-joint_feedback_topic: /dom/end_eff/dynamixel_joint_states
-joint_command_topic: /dom/end_eff/command_joint_states
+start_pos_deg: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+joint_feedback_topic: /gimbal/peripherals/dynamixel_joint_states
+joint_command_topic: /gimbal/peripherals/command_joint_states
 dynamixel_type: "XC330-M288"
   

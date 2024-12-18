@@ -29,7 +29,7 @@ class LeapHandNode(Node):
         self.declare_parameter("kP", 500)
         self.declare_parameter("kI", 0)
         self.declare_parameter("kD", 200)
-        self.declare_parameter("start_pos", [0.0] * 16)
+        self.declare_parameter("start_pos_deg", [0.0] * 16)
 
         if not test_flag:
             self.setup()
@@ -57,7 +57,7 @@ class LeapHandNode(Node):
         self.kP = self.get_parameter("kP").get_parameter_value().integer_value
         self.kI = self.get_parameter("kI").get_parameter_value().integer_value
         self.kD = self.get_parameter("kD").get_parameter_value().integer_value
-        self.start_pos = self.get_parameter("start_pos").get_parameter_value().double_array_value
+        self.start_pos_deg = self.get_parameter("start_pos_deg").get_parameter_value().double_array_value
 
         motor_ids = list(range(16))
         if self.dynamixel_type == "XC330-M288":
@@ -67,11 +67,10 @@ class LeapHandNode(Node):
         elif self.dynamixel_type == "XL330-M288":
             self.dynamixel_mgr = XL330M288Manager(motor_ids, self.baud_rate, self.device_name)
 
-        self.curr_pos = self.start_pos
 
-        # Ensure the curr_pos array has the correct length
-        if len(self.curr_pos) != 16:
-            self.curr_pos = [0] * 16
+        # Ensure the start_pos_deg array has the correct length. If not, just force it to home.
+        if len(self.start_pos_deg) != 16:
+            self.start_pos_deg = [0] * 16
 
         # Create publisher
         self.publisher = self.create_publisher(
@@ -85,12 +84,12 @@ class LeapHandNode(Node):
 
         # Initialize gains and operating mode
         # Currently operating mode is only set to position and cannot be changed (TBD!)
-        self.dynamixel_mgr.set_operating_mode(self.dynamixel_mgr.motor_ids, np.ones(len(self.dynamixel_mgr.motor_ids)) * 3)
+        self.dynamixel_mgr.set_operating_mode(self.dynamixel_mgr.motor_ids, np.ones(len(self.dynamixel_mgr.motor_ids)) * POSITION_MODE_ENUM)
         self.dynamixel_mgr.set_torque_enable(self.dynamixel_mgr.motor_ids, np.ones(len(self.dynamixel_mgr.motor_ids)))
         self.initialize_gains()
 
         # Set initial position
-        self.dynamixel_mgr.set_goal_position_deg(self.dynamixel_mgr.motor_ids, self.curr_pos)
+        self.dynamixel_mgr.set_goal_position_deg(self.dynamixel_mgr.motor_ids, self.start_pos_deg)
 
         # # Create timer to publish data
         timer_period = 1.0 / 60.0
