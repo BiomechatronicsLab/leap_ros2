@@ -16,6 +16,7 @@ import numpy as np
 
 stop_threads = False
 pause_threads = False
+node_name = "test_ros2_node"
 
 # GLOBAL VARIABLES
 class LeapMsgSubscriber(Node):
@@ -32,7 +33,6 @@ class LeapMsgSubscriber(Node):
 class ParameterSetter(Node):
     def __init__(self):
         super().__init__('parameter_setter')
-        node_name = "leap_ros2_node"
         self.client = self.create_client(
             SetParameters,
             f'/{node_name}/set_parameters'
@@ -41,10 +41,17 @@ class ParameterSetter(Node):
         self.req = SetParameters.Request()
 
     def wait_for_service_ready(self):
-        # This method ensures that the service is available before calling it
-        while not self.client.wait_for_service(timeout_sec=5.0):
-            self.get_logger().info('Service not available, waiting again...')
+        timeout = 5.0  # Total timeout in seconds
+        start_time = time.time()
+
+        while not self.client.wait_for_service(timeout_sec=1.0):
+            self.get_logger().warn('Service not available, retrying...')
+            if time.time() - start_time > timeout:
+                self.get_logger().error(f"Service {self.client.srv_name} not available after {timeout} seconds.")
+                raise TimeoutError("Service connection timed out.")
+
         self.get_logger().info('Service is available now.')
+
 
     def send_request(self, req):
         self.wait_for_service_ready()
@@ -75,7 +82,7 @@ def leap_msg_subscriber(config_params):
 
 @pytest.fixture
 def leap_ros2_node():
-    leap_ros2_node = LeapHandNode(test_flag = True)
+    leap_ros2_node = LeapHandNode(test_flag=True, node_name=node_name)
     yield leap_ros2_node
     leap_ros2_node.destroy_node()
 
