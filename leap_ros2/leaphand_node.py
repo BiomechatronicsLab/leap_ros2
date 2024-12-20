@@ -19,7 +19,7 @@ class LeapHandNode(Node):
 
         # Declare parameters
         self.declare_parameter("joint_command_topic", "/leap/end_eff/command_joint_states" )
-        self.declare_parameter("joint_feedback_topic", "/leap/end_eff/dynamixel_joint_states")
+        self.declare_parameter("joint_feedback_topic", "/leap/end_eff/feedback_joint_states")
         self.declare_parameter("baud_rate", 3000000)
         self.declare_parameter("device_name","")
         self.declare_parameter("dynamixel_type", "")
