@@ -14,8 +14,8 @@ import time
 POSITION_MODE_ENUM = 3
 
 class LeapHandNode(Node):
-    def __init__(self, test_flag=False):
-        super().__init__("leap_ros2_node")
+    def __init__(self, test_flag=False, node_name="leap_ros2_node"):
+        super().__init__(node_name)
 
         # Declare parameters
         self.declare_parameter("joint_command_topic", "/leap/end_eff/command_joint_states" )
@@ -30,6 +30,7 @@ class LeapHandNode(Node):
         self.declare_parameter("kI", 0)
         self.declare_parameter("kD", 200)
         self.declare_parameter("start_pos_deg", [0.0] * 16)
+        self.dynamixel_mgr = None
 
         if not test_flag:
             self.setup()
