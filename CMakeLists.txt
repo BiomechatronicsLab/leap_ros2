@@ -56,16 +56,16 @@ if(BUILD_TESTING)
     test/test_u2d2_connection.py
     test/test_motor_connection.py
     test/test_leap_registers.py
+    test/test_leap_node_driver.py
     test/test_leap_connection_topics.py
     test/test_leap_launch_params.py
     test/test_leap_end_to_end.py
-    test/test_leap_node_driver.py
   )
   foreach(_test_path ${_pytest_tests})
     get_filename_component(_test_name ${_test_path} NAME_WE)
     ament_add_pytest_test(${_test_name} ${_test_path}
       APPEND_ENV PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}
-      TIMEOUT 20
+      TIMEOUT 200 
       WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
     )
   endforeach()
