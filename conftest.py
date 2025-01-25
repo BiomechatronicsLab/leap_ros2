@@ -1,4 +1,5 @@
 import pytest
+import rclpy
 import os
 import yaml
 from ament_index_python.packages import get_package_share_directory
@@ -29,3 +30,12 @@ def dynamixel_manager(config_params):
         dynamixel_mgr = XL330M288Manager(motors_ids, baud_rate, device_name)
     
     yield dynamixel_mgr
+
+@pytest.fixture(autouse=True, scope="session")
+def initialize_rclpy():
+    # Set an arbitrary ROS_DOMAIN_ID so that the test is performed without inteference
+    os.environ["ROS_DOMAIN_ID"] = "42"
+
+    rclpy.init()
+    yield
+    rclpy.shutdown()
