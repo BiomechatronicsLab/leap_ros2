@@ -1,22 +1,17 @@
 #!/usr/bin/env python3
 import pytest
-import os
 from sensor_msgs.msg import JointState
-import rclpy
 import time
 from rclpy.node import Node
-import rclpy
-from rcl_interfaces.srv import SetParameters
-from rcl_interfaces.msg import Parameter, ParameterValue, SetParametersResult
 from leap_ros2.leaphand_node import LeapHandNode 
-from leap_ros2.suspendable_thread import SuspendableThread
-
+from test_utilities.suspendable_thread import SuspendableThread 
+from test_utilities.parameter_utility import ParameterSetter
 
 from rcl_interfaces.msg import ParameterType
 from rclpy.executors import SingleThreadedExecutor
 import numpy as np
 
-node_name = "test_ros2_node"
+node_name = "test_leap_node"
 
 # GLOBAL VARIABLES
 class LeapMsgSubscriber(Node):
@@ -30,47 +25,9 @@ class LeapMsgSubscriber(Node):
     def command_callback(self, msg):
         self.joint_state_msg = msg    
 
-class ParameterSetter(Node):
-    def __init__(self):
-        super().__init__('parameter_setter')
-        self.client = self.create_client(
-            SetParameters,
-            f'/{node_name}/set_parameters'
-        )
-
-        self.req = SetParameters.Request()
-
-    def wait_for_service_ready(self):
-        timeout = 5.0  # Total timeout in seconds
-        start_time = time.time()
-
-        while not self.client.wait_for_service(timeout_sec=1.0):
-            self.get_logger().warn('Service not available, retrying...')
-            if time.time() - start_time > timeout:
-                self.get_logger().error(f"Service {self.client.srv_name} not available after {timeout} seconds.")
-                raise TimeoutError("Service connection timed out.")
-
-        self.get_logger().info('Service is available now.')
-
-
-    def send_request(self, req):
-        self.wait_for_service_ready()
-        self.future = self.client.call_async(req)
-        rclpy.spin_until_future_complete(self, self.future)
-        return self.future.result().results
-
-@pytest.fixture(autouse=True, scope="session")
-def initialize_rclpy():
-    # Set an arbitrary ROS_DOMAIN_ID so that the test is performed without inteference
-    os.environ["ROS_DOMAIN_ID"] = "42"
-
-    rclpy.init()
-    yield
-    rclpy.shutdown()
-
 @pytest.fixture
 def parameter_setter():
-    parameter_setter = ParameterSetter()
+    parameter_setter = ParameterSetter(node_name)
     yield parameter_setter
     parameter_setter.destroy_node()
 
@@ -104,34 +61,6 @@ def leap_ros2_node_and_thread():
     leap_ros2_node.destroy_node()
     suspendable_thread.kill()
 
-def set_new_params(config_params, param_names_to_check):
-    params_to_set = [] # array of "sudo launch file params"
-    for param_name in param_names_to_check:
-        parameter_value = config_params[param_name]
-
-        # creation of a new parameter (based off the launch file)
-        new_param = Parameter()
-        new_param.name = param_name
-
-        if type(parameter_value) == bool:
-            new_param.value = ParameterValue(type=ParameterType.PARAMETER_BOOL, bool_value=parameter_value)
-        elif type(parameter_value) == int:
-            new_param.value = ParameterValue(type=ParameterType.PARAMETER_INTEGER, integer_value=parameter_value)
-        elif type(parameter_value) == float:
-            new_param.value = ParameterValue(type=ParameterType.PARAMETER_DOUBLE, double_value=parameter_value)
-        elif type(parameter_value) == str:
-            new_param.value = ParameterValue(type=ParameterType.PARAMETER_STRING, string_value=parameter_value)
-        elif type(parameter_value) == list and all(isinstance(x, bool) for x in parameter_value):
-            new_param.value = ParameterValue(type=ParameterType.PARAMETER_BOOL_ARRAY, bool_array_value=parameter_value)
-        elif type(parameter_value) == list and all(isinstance(x, int) for x in parameter_value):
-            new_param.value = ParameterValue(type=ParameterType.PARAMETER_INTEGER_ARRAY, integer_array_value=parameter_value)
-        elif type(parameter_value) == list and all(isinstance(x, float) for x in parameter_value):
-            new_param.value = ParameterValue(type=ParameterType.PARAMETER_DOUBLE_ARRAY, double_array_value=parameter_value)
-        elif type(parameter_value) == list and all(isinstance(x, str) for x in parameter_value):
-            new_param.value = ParameterValue(type=ParameterType.PARAMETER_STRING_ARRAY, string_array_value=parameter_value)
-        params_to_set.append(new_param)
-    return params_to_set
-
 def test_leap_node_no_publisher_joint_state_msg(leap_msg_subscriber, leap_ros2_node_and_thread, parameter_setter, config_params):
 
     executor_test = SingleThreadedExecutor() # Will run two nodes sequentially (mutually exclusive)
@@ -145,11 +74,8 @@ def test_leap_node_no_publisher_joint_state_msg(leap_msg_subscriber, leap_ros2_n
     config_params["pub_pos"] = False
     config_params["pub_vel"] = False
 
-    param_names_to_check = list(config_params.keys())
-    params_to_set = set_new_params(config_params, param_names_to_check)
-
-    # Set the parameters using the server
-    set_parameter_results = parameter_setter.send_request(SetParameters.Request(parameters=params_to_set))
+    config_param_keys = list(config_params.keys())
+    parameter_setter.set_params(config_params, config_param_keys)
 
     # Spin subscriber and service to actually execute the service call
     spin_for_duration(executor_test, 1.0)
@@ -176,6 +102,8 @@ def test_leap_node_no_publisher_joint_state_msg(leap_msg_subscriber, leap_ros2_n
         f'Joint State Message is Publishing Velocity when it shouldnt be'
     )
 
+    executor_test.shutdown()
+    
 def test_leap_node_publisher_joint_state_msg(leap_msg_subscriber, leap_ros2_node_and_thread, parameter_setter, config_params):
 
     leap_ros2_node, _ = leap_ros2_node_and_thread
@@ -189,11 +117,8 @@ def test_leap_node_publisher_joint_state_msg(leap_msg_subscriber, leap_ros2_node
     config_params["pub_pos"] = True
     config_params["pub_vel"] = True
 
-    param_names_to_check = list(config_params.keys())
-    params_to_set = set_new_params(config_params, param_names_to_check)
-
-    # Set the parameters using the server
-    set_parameter_results = parameter_setter.send_request(SetParameters.Request(parameters=params_to_set))
+    config_param_keys = list(config_params.keys())
+    parameter_setter.set_params(config_params, config_param_keys)
 
     # Spin subscriber and service to actually execute the service call
     spin_for_duration(executor_test, 1.0)
@@ -220,6 +145,8 @@ def test_leap_node_publisher_joint_state_msg(leap_msg_subscriber, leap_ros2_node
         f'Joint State Message is not Publishing Velocity when it should be'
     )
 
+    executor_test.shutdown()
+
 def test_leap_node_gain_values(leap_ros2_node_and_thread, parameter_setter, config_params):
 
     leap_ros2_node, suspendable_thread = leap_ros2_node_and_thread
@@ -236,11 +163,8 @@ def test_leap_node_gain_values(leap_ros2_node_and_thread, parameter_setter, conf
     config_params["kI"] = kI
     config_params["kD"] = kD
 
-    param_names_to_check = list(config_params.keys())
-    params_to_set = set_new_params(config_params, param_names_to_check)
-
-    # Set the parameters using the server
-    set_parameter_results = parameter_setter.send_request(SetParameters.Request(parameters=params_to_set))
+    config_param_keys = list(config_params.keys())
+    parameter_setter.set_params(config_params, config_param_keys)
 
     # Spin subscriber and service to actually execute the service call
     spin_for_duration(executor_test, 1.0)
@@ -270,6 +194,7 @@ def test_leap_node_gain_values(leap_ros2_node_and_thread, parameter_setter, conf
     assert truth_kP.astype(int).tolist() == test_kP
     assert truth_kI.astype(int).tolist() == test_kI
     assert truth_kD.astype(int).tolist() == test_kD
+    executor_test.shutdown()
 
 
 def test_leap_node_start_position(leap_ros2_node_and_thread, parameter_setter, config_params):
@@ -282,15 +207,11 @@ def test_leap_node_start_position(leap_ros2_node_and_thread, parameter_setter, c
     truth_start_pos_deg = [20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.00, 20.0, 20.0] # grasp
     config_params["start_pos_deg"] = truth_start_pos_deg
 
-    param_names_to_check = list(config_params.keys())
-    params_to_set = set_new_params(config_params, param_names_to_check)
-
-    # Set the parameters using the server
-    set_parameter_results = parameter_setter.send_request(SetParameters.Request(parameters=params_to_set))
+    config_param_keys = list(config_params.keys())
+    parameter_setter.set_params(config_params, config_param_keys)
 
     # Spin subscriber and service to actually execute the service call
     spin_for_duration(executor_test, 1.0)
-    print(set_parameter_results)
 
     # Setup the node so that it starts publishing with updated parameters
     leap_ros2_node.setup()
@@ -311,6 +232,7 @@ def test_leap_node_start_position(leap_ros2_node_and_thread, parameter_setter, c
 
     # have to convert to ints because thats how it is actually sent to the dynamixels
     assert all(comparison_result)
+    executor_test.shutdown()
 
 def test_leap_node_no_device_name(leap_ros2_node_and_thread, parameter_setter, config_params):
     leap_ros2_node, _ = leap_ros2_node_and_thread
@@ -321,11 +243,8 @@ def test_leap_node_no_device_name(leap_ros2_node_and_thread, parameter_setter, c
     # remove the device_name parameter to cause the exception to be raised!
     del config_params["device_name"] 
 
-    param_names_to_check = list(config_params.keys())
-    params_to_set = set_new_params(config_params, param_names_to_check)
-
-    # Set the parameters using the server
-    set_parameter_results = parameter_setter.send_request(SetParameters.Request(parameters=params_to_set))
+    config_param_keys = list(config_params.keys())
+    parameter_setter.set_params(config_params, config_param_keys)
 
     # Spin subscriber and service to actually execute the service call
     spin_for_duration(executor_test, 1.0)
@@ -336,6 +255,7 @@ def test_leap_node_no_device_name(leap_ros2_node_and_thread, parameter_setter, c
         leap_ros2_node.setup()
 
     assert True
+    executor_test.shutdown()
 
 def test_leap_node_no_dynamixel_type(leap_ros2_node_and_thread, parameter_setter, config_params):
     leap_ros2_node, _ = leap_ros2_node_and_thread
@@ -345,11 +265,8 @@ def test_leap_node_no_dynamixel_type(leap_ros2_node_and_thread, parameter_setter
     # remove the device_name parameter to cause the exception to be raised!
     del config_params["dynamixel_type"] 
 
-    param_names_to_check = list(config_params.keys())
-    params_to_set = set_new_params(config_params, param_names_to_check)
-
-    # Set the parameters using the server
-    set_parameter_results = parameter_setter.send_request(SetParameters.Request(parameters=params_to_set))
+    config_param_keys = list(config_params.keys())
+    parameter_setter.set_params(config_params, config_param_keys)
 
     # Spin subscriber and service to actually execute the service call
     spin_for_duration(executor_test, 1.0)
@@ -360,3 +277,4 @@ def test_leap_node_no_dynamixel_type(leap_ros2_node_and_thread, parameter_setter
         leap_ros2_node.setup()
         
     assert True
+    executor_test.shutdown()

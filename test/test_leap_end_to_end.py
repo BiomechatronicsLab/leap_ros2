@@ -65,15 +65,6 @@ class LeapPositionChecker(Node):
         while time.time() - start_time < duration_sec:
             rclpy.spin_once(self, timeout_sec=0.1)  # Adjust timeout_sec for finer granularity if needed
 
-@pytest.fixture(autouse=True, scope="session")
-def initialize_rclpy():
-    # Set an arbitrary ROS_DOMAIN_ID so that the test is performed without inteference
-    os.environ['ROS_DOMAIN_ID'] = '42'
-
-    rclpy.init()
-    yield
-    rclpy.shutdown()
-
 @pytest.fixture
 def leap_position_checker(config_params):
     test_node = LeapPositionChecker(config_params)
