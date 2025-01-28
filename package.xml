@@ -1,10 +1,10 @@
 <package format="3">
     <name>leap_ros2</name>
-    <version>1.0.0</version>
+    <version>1.1.0</version>
     <description>
-        This package provides an interface to the Leap Hands
+        This provides a ROS2 interface to control the LEAP Hand, which is a collection of dynamixel motors. 
     </description>
-    <maintainer email="eharber@ucla.edu">Evan Harber</maintainer>
+    <maintainer email="smock@ucla.edu">Stephen Mock</maintainer>
     <license>MIT</license>
 
     <buildtool_depend>ament_cmake</buildtool_depend>

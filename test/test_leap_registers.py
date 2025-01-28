@@ -28,7 +28,7 @@ def command_and_check_position(dynamixel_manager, truth_goal_position_deg, toler
 def test_kP(dynamixel_manager):
     kP = 600
     truth_kP = np.ones(len(dynamixel_manager.motor_ids)) * kP
-    dynamixel_manager.set_operating_mode(dynamixel_manager.motor_ids, np.ones(len(dynamixel_manager.motor_ids)) * position_mode_enum)
+    dynamixel_manager.set_position_mode(dynamixel_manager.motor_ids)
     dynamixel_manager.set_kP(dynamixel_manager.motor_ids, truth_kP)
     test_kP = dynamixel_manager.get_kP(dynamixel_manager.motor_ids)
     assert truth_kP.tolist() == test_kP, "kP values not set correctly"
@@ -37,7 +37,7 @@ def test_kP(dynamixel_manager):
 def test_kI(dynamixel_manager):
     kI = 0
     truth_kI = np.ones(len(dynamixel_manager.motor_ids)) * kI
-    dynamixel_manager.set_operating_mode(dynamixel_manager.motor_ids, np.ones(len(dynamixel_manager.motor_ids)) * position_mode_enum)
+    dynamixel_manager.set_position_mode(dynamixel_manager.motor_ids)
     dynamixel_manager.set_kI(dynamixel_manager.motor_ids, truth_kI)
     test_kI = dynamixel_manager.get_kI(dynamixel_manager.motor_ids)
     assert truth_kI.tolist() == test_kI, "kI values not set correctly"
@@ -46,13 +46,13 @@ def test_kI(dynamixel_manager):
 def test_kD(dynamixel_manager):
     kD = 200
     truth_kD = np.ones(len(dynamixel_manager.motor_ids)) * kD
-    dynamixel_manager.set_operating_mode(dynamixel_manager.motor_ids, np.ones(len(dynamixel_manager.motor_ids)) * position_mode_enum)
+    dynamixel_manager.set_position_mode(dynamixel_manager.motor_ids)
     dynamixel_manager.set_kD(dynamixel_manager.motor_ids, truth_kD)
     test_kD = dynamixel_manager.get_kD(dynamixel_manager.motor_ids)
     assert truth_kD.tolist() == test_kD, "kD values not set correctly"
     time.sleep(1.0)
 
-# TODO: this test is a little weird because if i change the baudrate (which is taken from the config right now, it will no longer connect)
+# TODO: this test is a little weird because if I change the baudrate in dynamixel wizard (which is taken from the config right now, it will no longer connect)
 def test_baud_rate(dynamixel_manager):
     truth_baud_rate = np.ones(len(dynamixel_manager.motor_ids)) * baud_rate_3M_enum
     dynamixel_manager.set_baud_rate(dynamixel_manager.motor_ids, truth_baud_rate)
@@ -62,37 +62,35 @@ def test_baud_rate(dynamixel_manager):
 
 def test_position_mode(dynamixel_manager):
     truth_operating_mode = np.ones(len(dynamixel_manager.motor_ids)) * position_mode_enum # Position Mode
-    dynamixel_manager.set_operating_mode(dynamixel_manager.motor_ids, truth_operating_mode)
+    dynamixel_manager.set_position_mode(dynamixel_manager.motor_ids)
     test_operating_mode = dynamixel_manager.get_operating_mode(dynamixel_manager.motor_ids)
     assert truth_operating_mode.tolist() == test_operating_mode
     time.sleep(1.0)
 
 def test_current_based_position_mode(dynamixel_manager):
     truth_operating_mode = np.ones(len(dynamixel_manager.motor_ids)) * current_based_position_enum # current-based position control mode
-    dynamixel_manager.set_operating_mode(dynamixel_manager.motor_ids, truth_operating_mode)
-    dynamixel_manager.set_torque_enable(dynamixel_manager.motor_ids, np.ones(len(dynamixel_manager.motor_ids)))
+    dynamixel_manager.set_current_based_position_mode(dynamixel_manager.motor_ids)
+    dynamixel_manager.set_torque_enable(dynamixel_manager.motor_ids)
     test_operating_mode = dynamixel_manager.get_operating_mode(dynamixel_manager.motor_ids)
     assert truth_operating_mode.tolist() == test_operating_mode
     time.sleep(1.0)
 
 def test_current_limit(dynamixel_manager):
-    curr_lim = 1500 # arbitrary
-    truth_operating_mode = np.ones(len(dynamixel_manager.motor_ids)) * current_based_position_enum # current based position control mode
-    dynamixel_manager.set_operating_mode(dynamixel_manager.motor_ids, truth_operating_mode)
+    curr_lim = 100 # somewhat arbitrary
+    dynamixel_manager.set_current_based_position_mode(dynamixel_manager.motor_ids)
     truth_current_limit = np.ones(len(dynamixel_manager.motor_ids)) * curr_lim
     dynamixel_manager.set_current_limit(dynamixel_manager.motor_ids, truth_current_limit) # Set above! 
-    dynamixel_manager.set_torque_enable(dynamixel_manager.motor_ids, np.ones(len(dynamixel_manager.motor_ids)))
+    dynamixel_manager.set_torque_enable(dynamixel_manager.motor_ids)
     test_current_limit = dynamixel_manager.get_current_limit(dynamixel_manager.motor_ids)
     assert truth_current_limit.tolist() == test_current_limit, "current_limit is not set correctly!"
     time.sleep(1.0)
 
 def test_max_current_limit(dynamixel_manager):
     max_curr_limit = dynamixel_manager.max_curr_limit
-    truth_operating_mode = np.ones(len(dynamixel_manager.motor_ids)) * current_based_position_enum # current based position control mode
-    dynamixel_manager.set_operating_mode(dynamixel_manager.motor_ids, truth_operating_mode)
+    dynamixel_manager.set_current_based_position_mode(dynamixel_manager.motor_ids)
     truth_current_limit = np.ones(len(dynamixel_manager.motor_ids)) * max_curr_limit
     dynamixel_manager.set_current_limit(dynamixel_manager.motor_ids, truth_current_limit) # Set above limit!
-    dynamixel_manager.set_torque_enable(dynamixel_manager.motor_ids, np.ones(len(dynamixel_manager.motor_ids)))
+    dynamixel_manager.set_torque_enable(dynamixel_manager.motor_ids)
     test_current_limit = dynamixel_manager.get_current_limit(dynamixel_manager.motor_ids)
     assert truth_current_limit.tolist() == test_current_limit, "current_limit did not sature correctly"
     time.sleep(1.0)
@@ -100,7 +98,6 @@ def test_max_current_limit(dynamixel_manager):
 def test_current(dynamixel_manager):
 
     # Test no current to start!
-    truth_current = np.zeros(len(dynamixel_manager.motor_ids))
     test_current = dynamixel_manager.get_current(dynamixel_manager.motor_ids)
     print(test_current)
     assert all([abs(val) <= 10.0 for val in test_current]), "current is greater than resting tolerance" # arbitrary tolerance, based on resting output of motors
@@ -109,9 +106,8 @@ def test_current(dynamixel_manager):
     
     # TODO: this could be optimized by actually testing with torque control, because unless I set the goal current in 
     # current_based_position_control, then it actually does not put a hard limit on the current. But it will be less than the maximum...
-
-    dynamixel_manager.set_operating_mode(dynamixel_manager.motor_ids, np.ones(len(dynamixel_manager.motor_ids)) * current_based_position_enum)
-    dynamixel_manager.set_torque_enable(dynamixel_manager.motor_ids, np.ones(len(dynamixel_manager.motor_ids)))
+    dynamixel_manager.set_current_based_position_mode(dynamixel_manager.motor_ids)
+    dynamixel_manager.set_torque_enable(dynamixel_manager.motor_ids)
     max_curr_limit = dynamixel_manager.max_curr_limit
     goal_position_deg = np.ones(len(dynamixel_manager.motor_ids)) * 10.0
     dynamixel_manager.set_goal_position_deg(dynamixel_manager.motor_ids, goal_position_deg)
@@ -122,20 +118,19 @@ def test_current(dynamixel_manager):
     time.sleep(1.0)
 
 def test_velocity(dynamixel_manager):
+    # TODO: could do more work to see if values are changing when moving around...
     test_velocity = dynamixel_manager.get_velocity(dynamixel_manager.motor_ids)
     print(test_velocity)
     assert all([abs(val) <= 2.0 for val in test_velocity]), "velocity is practically 0"
 
-    # TODO: could do more work to see if values are changing when moving around...
-
 def test_torque_enable(dynamixel_manager):
     truth_torque_enable = np.zeros(len(dynamixel_manager.motor_ids))
-    dynamixel_manager.set_torque_enable(dynamixel_manager.motor_ids, truth_torque_enable)
+    dynamixel_manager.set_torque_enable(dynamixel_manager.motor_ids)
     test_torque_enable = dynamixel_manager.get_torque_enable(dynamixel_manager.motor_ids)
     assert truth_torque_enable.tolist() == test_torque_enable # TORQUE OFF
 
     truth_torque_enable = np.ones(len(dynamixel_manager.motor_ids))
-    dynamixel_manager.set_torque_enable(dynamixel_manager.motor_ids, truth_torque_enable)
+    dynamixel_manager.set_torque_enable(dynamixel_manager.motor_ids)
     test_torque_enable = dynamixel_manager.get_torque_enable(dynamixel_manager.motor_ids)
     assert truth_torque_enable.tolist() == test_torque_enable # TORQUE ON
     time.sleep(1.0)
@@ -164,11 +159,11 @@ def test_position(dynamixel_manager, truth_goal_position_deg):
     kD_gains = np.ones(len(dynamixel_manager.motor_ids)) * 200
     tolerance_deg = 10.0 # how much allowable error there can be (was never given any requirements...)
 
-    dynamixel_manager.set_operating_mode(dynamixel_manager.motor_ids, np.ones(len(dynamixel_manager.motor_ids)) * position_mode_enum)
-    dynamixel_manager.set_torque_enable(dynamixel_manager.motor_ids, np.ones(len(dynamixel_manager.motor_ids)))
+    dynamixel_manager.set_position_mode(dynamixel_manager.motor_ids)
+    dynamixel_manager.set_torque_enable(dynamixel_manager.motor_ids)
     dynamixel_manager.initialize_gains(dynamixel_manager.motor_ids, kP_gains, kI_gains, kD_gains)
 
     # Command Position!
     assert command_and_check_position(dynamixel_manager, truth_goal_position_deg, tolerance_deg)
-    time.sleep(1.0)
+    time.sleep(0.5)
 

@@ -73,7 +73,7 @@ def leap_position_checker(config_params):
 
 @pytest.mark.launch(fixture=launch_leap_ros2_node)
 def test_leap_end_to_end_position(leap_position_checker):
-    tolerance_deg = 10.0
+    tolerance_deg = 10.0 # currently arbitrary 10degree tolerance - if too low, the motors may not actually ever reach the position, due to their kP, kD, kI gains
 
     positions_to_command_deg = [
             [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
