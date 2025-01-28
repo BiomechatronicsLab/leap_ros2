@@ -21,6 +21,12 @@ install(PROGRAMS ${SCRIPT_FILES}
   DESTINATION lib/${PROJECT_NAME}
 )
 
+# Install Python scripts in the scripts directory
+file(GLOB SCRIPT_FILES scripts/*.py)
+install(PROGRAMS ${SCRIPT_FILES}
+  DESTINATION lib/${PROJECT_NAME}
+)
+
 # Install all Python scripts in the launch directory (if any)
 file(GLOB LAUNCH_SCRIPTS launch/*.py)
 install(PROGRAMS ${LAUNCH_SCRIPTS}

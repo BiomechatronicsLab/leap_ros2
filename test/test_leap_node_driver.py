@@ -3,7 +3,7 @@ import pytest
 from sensor_msgs.msg import JointState
 import time
 from rclpy.node import Node
-from leap_ros2.leaphand_node import LeapHandNode 
+from leap_ros2.leap_node import LeapHandNode 
 from test_utilities.suspendable_thread import SuspendableThread 
 from test_utilities.parameter_utility import ParameterSetter
 

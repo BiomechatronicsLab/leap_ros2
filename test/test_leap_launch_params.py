@@ -29,7 +29,7 @@ def launch_leap_ros2_node(config_params):
     return LaunchDescription([
         launch_ros.actions.Node(
             package='leap_ros2',  #
-            executable='leaphand_node.py',  
+            executable='leap_driver.py',  
             name=node_name,
             output='screen',
             parameters=[config_params]

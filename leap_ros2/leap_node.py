@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import JointState
 import numpy as np
@@ -137,14 +136,3 @@ class LeapHandNode(Node):
             self.dynamixel_mgr.set_goal_position_deg(self.dynamixel_mgr.motor_ids, msg.position)
         except Exception as e:
             self.get_logger().error(f"Error in command callback: {str(e)}")
-
-def main(args=None):
-    rclpy.init(args=args)
-    node = LeapHandNode()
-    rclpy.spin(node)
-    node.destroy_node()
-    rclpy.shutdown()
-
-
-if __name__ == "__main__":
-    main()
