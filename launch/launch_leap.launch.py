@@ -13,7 +13,6 @@ def load_yaml_file(file_path):
     with open(file_path, 'r') as file:
         return yaml.safe_load(file)
     
-
 def launch_setup(context, *args, **kwargs):
     # Retrieve the path to the YAML file from the config_file argument
     config_file_name = LaunchConfiguration('config_file').perform(context)
@@ -37,7 +36,6 @@ def launch_setup(context, *args, **kwargs):
         ),
     ]
 
-
 def generate_launch_description():
     # Declare the YAML file name as a launch argument
     config_file_arg = DeclareLaunchArgument(
@@ -50,7 +48,6 @@ def generate_launch_description():
         config_file_arg,
         OpaqueFunction(function=launch_setup)  # Ensure the config_file argument is processed at runtime
     ])
-
 
 if __name__ == '__main__':
     generate_launch_description()

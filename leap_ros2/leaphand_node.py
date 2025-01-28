@@ -8,11 +8,6 @@ from dynamixel_driver import dynamixel_manager
 from dynamixel_driver.XC330_M288_manager import XC330M288Manager
 from dynamixel_driver.XL330_M288_manager import XL330M288Manager
 
-import time
-
-# TODO: I don't love this because you have to set your position enums in the leaphand node, when thats a driver specific implementation. TBD what to do.
-POSITION_MODE_ENUM = 3
-
 class LeapHandNode(Node):
     def __init__(self, test_flag=False, node_name="leap_ros2_node"):
         super().__init__(node_name)
@@ -85,15 +80,15 @@ class LeapHandNode(Node):
 
         # Initialize gains and operating mode
         # Currently operating mode is only set to position and cannot be changed (TBD!)
-        self.dynamixel_mgr.set_torque_enable(self.dynamixel_mgr.motor_ids, np.zeros(len(self.dynamixel_mgr.motor_ids))) # Disable torques prior to changing settings
-        self.dynamixel_mgr.set_operating_mode(self.dynamixel_mgr.motor_ids, np.ones(len(self.dynamixel_mgr.motor_ids)) * POSITION_MODE_ENUM)
-        self.dynamixel_mgr.set_torque_enable(self.dynamixel_mgr.motor_ids, np.ones(len(self.dynamixel_mgr.motor_ids)))
+        self.dynamixel_mgr.set_torque_disable(self.dynamixel_mgr.motor_ids) # Disable torques prior to changing settings
+        self.dynamixel_mgr.set_position_mode(self.dynamixel_mgr.motor_ids)
+        self.dynamixel_mgr.set_torque_enable(self.dynamixel_mgr.motor_ids)
         self.initialize_gains()
 
         # Set initial position
         self.dynamixel_mgr.set_goal_position_deg(self.dynamixel_mgr.motor_ids, self.start_pos_deg)
 
-        # # Create timer to publish data
+        # TODO: Create timer to publish data, this frequency could be an exposed config parameter
         timer_period = 1.0 / 60.0
         self.timer = self.create_timer(timer_period, self.read_and_publish_data)
 
