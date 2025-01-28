@@ -125,7 +125,7 @@ def test_velocity(dynamixel_manager):
 
 def test_torque_enable(dynamixel_manager):
     truth_torque_enable = np.zeros(len(dynamixel_manager.motor_ids))
-    dynamixel_manager.set_torque_enable(dynamixel_manager.motor_ids)
+    dynamixel_manager.set_torque_disable(dynamixel_manager.motor_ids)
     test_torque_enable = dynamixel_manager.get_torque_enable(dynamixel_manager.motor_ids)
     assert truth_torque_enable.tolist() == test_torque_enable # TORQUE OFF
 

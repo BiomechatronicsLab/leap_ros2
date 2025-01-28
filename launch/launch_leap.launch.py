@@ -27,10 +27,10 @@ def launch_setup(context, *args, **kwargs):
     return [
         Node(
             package='leap_ros2',
-            executable='leaphand_node.py',
+            executable='leap_driver.py',
             output="screen",
             emulate_tty=True,
-            name='leaphand_node',
+            name='leap_node',
             parameters=[config_params]  # Pass the loaded parameters here
             
         ),
