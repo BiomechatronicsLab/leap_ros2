@@ -16,6 +16,5 @@ def main(args=None):
         leap_hand.destroy_node()
         rclpy.shutdown()
 
-
 if __name__ == "__main__":
     main()

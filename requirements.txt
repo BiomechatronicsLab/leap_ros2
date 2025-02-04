@@ -1,1 +1,3 @@
 dynamixel-sdk
+launch_pytest
+pytest

@@ -3,7 +3,6 @@
 from rclpy.node import Node
 from sensor_msgs.msg import JointState
 import numpy as np
-from dynamixel_driver import dynamixel_manager
 from dynamixel_driver.XC330_M288_manager import XC330M288Manager
 from dynamixel_driver.XL330_M288_manager import XL330M288Manager
 
@@ -87,11 +86,13 @@ class LeapHandNode(Node):
         # Set initial position
         self.dynamixel_mgr.set_goal_position_deg(self.dynamixel_mgr.motor_ids, self.start_pos_deg)
 
-        # TODO: Create timer to publish data, this frequency could be an exposed config parameter
+        # TODO: This frequency could be an exposed config parameter
         timer_period = 1.0 / 60.0
         self.timer = self.create_timer(timer_period, self.read_and_publish_data)
 
     def initialize_gains(self):
+            
+            # TODO: These gains don't need to necessarily be set this way - this is legacy implementation.
             try:
                 kP = np.ones(len(self.dynamixel_mgr.motor_ids)) * self.kP
                 kP[[0, 4, 8]] = np.ones(3) * (self.kP * 0.75) 
