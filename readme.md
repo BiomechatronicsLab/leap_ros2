@@ -32,7 +32,7 @@ Follow these steps to set up the Leap Hand:
 
 1. **Clone the Repository**:
    ```bash
-   git clone git@github.com:BiomechatronicsLab/leap_ros2.git
+   git clone --recurse-submodules git@github.com:BiomechatronicsLab/leap_ros2.git
    cd your-repo-directory
    ```
 
