@@ -132,7 +132,6 @@ class LeapHandNode(Node):
             self.get_logger().error(f"Error reading and publishing data: {str(e)}")
 
     def command_callback(self, msg):
-        print(msg.position)
         try:
             self.dynamixel_mgr.set_goal_position_deg(self.dynamixel_mgr.motor_ids, msg.position)
         except Exception as e:
