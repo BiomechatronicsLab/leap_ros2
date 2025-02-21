@@ -52,11 +52,12 @@ class LeapHandNode(Node):
         self.kI = self.get_parameter("kI").get_parameter_value().integer_value
         self.kD = self.get_parameter("kD").get_parameter_value().integer_value
         self.start_pos_deg = self.get_parameter("start_pos_deg").get_parameter_value().double_array_value
+        
+        # Current limit that is set based on what type of dynamixel motor
 
         motor_ids = list(range(16))
         if self.dynamixel_type == "XC330-M288":
             self.dynamixel_mgr = XC330M288Manager(motor_ids, self.baud_rate, self.device_name)
-            
             
         elif self.dynamixel_type == "XL330-M288":
             self.dynamixel_mgr = XL330M288Manager(motor_ids, self.baud_rate, self.device_name)
@@ -77,17 +78,18 @@ class LeapHandNode(Node):
         )
 
         # Initialize gains and operating mode
-        # Currently operating mode is only set to position and cannot be changed (TBD!)
+        # Currently operating mode is only set to current based position control!
         self.dynamixel_mgr.set_torque_disable(self.dynamixel_mgr.motor_ids) # Disable torques prior to changing settings
-        self.dynamixel_mgr.set_position_mode(self.dynamixel_mgr.motor_ids)
+        self.dynamixel_mgr.set_current_based_position_mode(self.dynamixel_mgr.motor_ids)
+        self.dynamixel_mgr.set_current_limit(self.dynamixel_mgr.motor_ids, np.ones(len(motor_ids)) * self.dynamixel_mgr.max_curr_limit)
         self.dynamixel_mgr.set_torque_enable(self.dynamixel_mgr.motor_ids)
         self.initialize_gains()
 
         # Set initial position
         self.dynamixel_mgr.set_goal_position_deg(self.dynamixel_mgr.motor_ids, self.start_pos_deg)
 
-        # TODO: This frequency could be an exposed config parameter
-        timer_period = 1.0 / 60.0
+        # TODO: This frequency could be an exposed config parameter - currently goes to 72 hertz which is used for the metaquest for ONR
+        timer_period = 1.0 / 72.0
         self.timer = self.create_timer(timer_period, self.read_and_publish_data)
 
     def initialize_gains(self):
