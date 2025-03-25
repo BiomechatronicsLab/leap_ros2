@@ -16,6 +16,7 @@ class LeapHandNode(Node):
         self.declare_parameter("baud_rate", 3000000)
         self.declare_parameter("device_name","")
         self.declare_parameter("dynamixel_type", "")
+        self.declare_parameter("percent_current_limit", 100)
         self.declare_parameter("pub_pos", True)
         self.declare_parameter("pub_vel", False)
         self.declare_parameter("pub_current", False)
@@ -44,7 +45,8 @@ class LeapHandNode(Node):
             raise ValueError(
                 "Please state the dynamixel_type in the configuration file."
             )
-
+        
+        self.percent_current_limit = self.get_parameter("percent_current_limit").get_parameter_value().integer_value
         self.pub_pos = self.get_parameter("pub_pos").get_parameter_value().bool_value
         self.pub_vel = self.get_parameter("pub_vel").get_parameter_value().bool_value
         self.pub_current = self.get_parameter("pub_current").get_parameter_value().bool_value
@@ -81,7 +83,8 @@ class LeapHandNode(Node):
         # Currently operating mode is only set to current based position control!
         self.dynamixel_mgr.set_torque_disable(self.dynamixel_mgr.motor_ids) # Disable torques prior to changing settings
         self.dynamixel_mgr.set_current_based_position_mode(self.dynamixel_mgr.motor_ids)
-        self.dynamixel_mgr.set_current_limit(self.dynamixel_mgr.motor_ids, np.ones(len(motor_ids)) * self.dynamixel_mgr.max_curr_limit)
+        self.dynamixel_mgr.set_current_limit(self.dynamixel_mgr.motor_ids, np.ones(len(motor_ids))
+                                              * self.dynamixel_mgr.max_curr_limit * (self.percent_current_limit/100))
         self.dynamixel_mgr.set_torque_enable(self.dynamixel_mgr.motor_ids)
         self.initialize_gains()
 

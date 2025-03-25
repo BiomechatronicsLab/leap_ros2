@@ -3,10 +3,11 @@ device_name: /dev/serial/by-id/usb-FTDI_USB__-__Serial_Converter_FT8ISZ8G-if00-p
 kD: 200
 kI: 0
 kP: 600
+percent_current_limit: 100
 pub_current: false
 pub_pos: true
 pub_vel: false
 start_pos_deg: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-joint_feedback_topic: /leap/end_eff/feedback_joint_states
-joint_command_topic: /leap/end_eff/command_joint_states
+joint_feedback_topic: /dom/end_eff/feedback_joint_states
+joint_command_topic: /dom/end_eff/command_joint_states
 dynamixel_type: "XC330-M288"
