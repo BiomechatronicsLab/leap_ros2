@@ -5,6 +5,7 @@ from sensor_msgs.msg import JointState
 import numpy as np
 from dynamixel_driver.XC330_M288_manager import XC330M288Manager
 from dynamixel_driver.XL330_M288_manager import XL330M288Manager
+import time
 
 class LeapHandNode(Node):
     def __init__(self, test_flag=False, node_name="leap_ros2_node"):
@@ -24,6 +25,8 @@ class LeapHandNode(Node):
         self.declare_parameter("kI", 0)
         self.declare_parameter("kD", 200)
         self.declare_parameter("start_pos_deg", [0.0] * 16)
+        self.declare_parameter('min_position_deg', [0.0, -30.0, 0.0, 0.0, 0.0, -30.0, 0.0, 0.0, 0.0, -30.0, 0.0, 0.0, 0.0, -60.0, 0.0, 0.0])
+        self.declare_parameter('max_position_deg', [90.0, 30.0, 90.0, 90.0, 90.0, 30.0, 90.0, 90.0, 90.0, 30.0, 90.0, 90.0, 90.0, 60.0, 90.0, 90.0])
         self.dynamixel_mgr = None
 
         if not test_flag:
@@ -54,7 +57,9 @@ class LeapHandNode(Node):
         self.kI = self.get_parameter("kI").get_parameter_value().integer_value
         self.kD = self.get_parameter("kD").get_parameter_value().integer_value
         self.start_pos_deg = self.get_parameter("start_pos_deg").get_parameter_value().double_array_value
-        
+        self.min_position_deg = self.get_parameter('min_position_deg').get_parameter_value().double_array_value
+        self.max_position_deg = self.get_parameter('max_position_deg').get_parameter_value().double_array_value
+
         # Current limit that is set based on what type of dynamixel motor
 
         motor_ids = list(range(16))
@@ -79,10 +84,15 @@ class LeapHandNode(Node):
             JointState, self.joint_command_topic, self.command_callback, 10
         )
 
+        self.dynamixel_mgr.reboot_motors() # Allow driver to reset motors prior to bootup and settings change
+        time.sleep(1.0) # Wait for boot sequence to clear
+
         # Initialize gains and operating mode
         # Currently operating mode is only set to current based position control!
         self.dynamixel_mgr.set_torque_disable(self.dynamixel_mgr.motor_ids) # Disable torques prior to changing settings
         self.dynamixel_mgr.set_current_based_position_mode(self.dynamixel_mgr.motor_ids)
+        self.dynamixel_mgr.set_min_position_deg(self.dynamixel_mgr.motor_ids, self.min_position_deg)
+        self.dynamixel_mgr.set_max_position_deg(self.dynamixel_mgr.motor_ids, self.max_position_deg)
         self.dynamixel_mgr.set_current_limit(self.dynamixel_mgr.motor_ids, np.ones(len(motor_ids))
                                               * self.dynamixel_mgr.max_curr_limit * (self.percent_current_limit/100))
         self.dynamixel_mgr.set_torque_enable(self.dynamixel_mgr.motor_ids)
@@ -120,6 +130,27 @@ class LeapHandNode(Node):
         try:
             joint_state_msg = JointState()
             joint_state_msg.header.stamp = self.get_clock().now().to_msg()
+
+            # By constantly setting the torque to be re-enabled, it will avoid the case where when rebooting the motor,
+            # the command is somehow missed (likely due to time taken when rebooting)
+            # Potentially a jank work around, but TBD if this is the policy we should use for the hand
+
+            self.dynamixel_mgr.set_torque_enable(self.dynamixel_mgr.motor_ids) 
+
+            # Check for errors! 
+            hardware_motors = self.dynamixel_mgr.get_hardware_error_status(self.dynamixel_mgr.motor_ids)
+            errored_motors = []
+            errored_motors = [i for i, val in enumerate(hardware_motors) if val != 0]
+
+            if errored_motors:
+                print("These motors are errored, resetting!", errored_motors)
+                error_present = True
+                while error_present:
+                    success_arr = self.dynamixel_mgr.reboot_motors(errored_motors)
+                    print(success_arr)
+                    if all(success_arr):
+                        error_present = False
+                        self.dynamixel_mgr.set_torque_enable(errored_motors)
 
             if self.pub_pos:
                 joint_state_msg.position = self.dynamixel_mgr.get_position_deg(self.dynamixel_mgr.motor_ids)
