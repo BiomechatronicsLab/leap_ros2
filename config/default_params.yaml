@@ -11,3 +11,5 @@ start_pos_deg: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 joint_feedback_topic: /dom/end_eff/feedback_joint_states
 joint_command_topic: /dom/end_eff/command_joint_states
 dynamixel_type: "XC330-M288"
+min_position_deg: [0.0, -30.0, 0.0, 0.0, 0.0, -30.0, 0.0, 0.0, 0.0, -30.0, 0.0, 0.0, 0.0, -60.0, 0.0, 0.0]
+max_position_deg: [90.0, 30.0, 90.0, 90.0, 90.0, 30.0, 90.0, 90.0, 90.0, 30.0, 90.0, 90.0, 90.0, 60.0, 90.0, 90.0]
