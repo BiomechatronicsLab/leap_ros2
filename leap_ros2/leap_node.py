@@ -84,7 +84,7 @@ class LeapHandNode(Node):
             JointState, self.joint_command_topic, self.command_callback, 10
         )
 
-        self.dynamixel_mgr.reboot_motors() # Allow driver to reset motors prior to bootup and settings change
+        self.dynamixel_mgr.reboot_motors(self.dynamixel_mgr.motor_ids) # Allow driver to reset motors prior to bootup and settings change
         time.sleep(1.0) # Wait for boot sequence to clear
 
         # Initialize gains and operating mode
