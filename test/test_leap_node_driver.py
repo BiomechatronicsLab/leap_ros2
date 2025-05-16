@@ -183,7 +183,7 @@ def test_leap_node_gain_values(leap_ros2_node_and_thread, parameter_setter, conf
 
     # Pause the leap_node from running so that I can check the actual driver information
     suspendable_thread.suspend()
-    time.sleep(1.0)
+    time.sleep(3.0)
 
     # Check the driver
     test_kP = leap_ros2_node.dynamixel_mgr.get_kP(leap_ros2_node.dynamixel_mgr.motor_ids)
@@ -219,7 +219,7 @@ def test_leap_node_start_position(leap_ros2_node_and_thread, parameter_setter, c
     
     # Pause the leap_node from running so that I can check the actual driver information
     suspendable_thread.suspend()
-    time.sleep(1.0)
+    time.sleep(3.0)
     test_start_pos_deg = leap_ros2_node.dynamixel_mgr.get_position_deg(leap_ros2_node.dynamixel_mgr.motor_ids)
     leap_ros2_node.dynamixel_mgr.set_goal_position_deg(leap_ros2_node.dynamixel_mgr.motor_ids, np.zeros(len(leap_ros2_node.dynamixel_mgr.motor_ids))) # just reset it back to home, not 100% necessary...
 
