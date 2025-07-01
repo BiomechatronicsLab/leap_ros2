@@ -27,6 +27,13 @@ class LeapHandNode(Node):
         self.declare_parameter("start_pos_deg", [0.0] * 16)
         self.declare_parameter('min_position_deg', [0.0, -30.0, 0.0, 0.0, 0.0, -30.0, 0.0, 0.0, 0.0, -30.0, 0.0, 0.0, 0.0, -60.0, 0.0, 0.0])
         self.declare_parameter('max_position_deg', [90.0, 30.0, 90.0, 90.0, 90.0, 30.0, 90.0, 90.0, 90.0, 30.0, 90.0, 90.0, 90.0, 60.0, 90.0, 90.0])
+        
+        # Experimental Setters
+        self.declare_parameter("velocity_limit", 0) # default parameter
+        self.declare_parameter("return_delay_time", 250) # default parameter
+        self.declare_parameter("profile_acceleration", 0) # default parameter
+        self.declare_parameter("profile_velocity", 0) # default parameter
+
         self.dynamixel_mgr = None
 
         if not test_flag:
@@ -37,6 +44,8 @@ class LeapHandNode(Node):
         self.joint_command_topic = self.get_parameter("joint_command_topic").get_parameter_value().string_value
         self.joint_feedback_topic = self.get_parameter("joint_feedback_topic").get_parameter_value().string_value
         self.baud_rate = self.get_parameter("baud_rate").get_parameter_value().integer_value
+        
+        print(self.baud_rate)
         self.device_name = self.get_parameter("device_name").get_parameter_value().string_value
         if self.device_name == "":
             raise ValueError(
@@ -60,8 +69,13 @@ class LeapHandNode(Node):
         self.min_position_deg = self.get_parameter('min_position_deg').get_parameter_value().double_array_value
         self.max_position_deg = self.get_parameter('max_position_deg').get_parameter_value().double_array_value
 
-        # Current limit that is set based on what type of dynamixel motor
+        # Experimental Parameters
+        self.velocity_limit = self.get_parameter("velocity_limit").get_parameter_value().integer_value 
+        self.return_delay_time = self.get_parameter("return_delay_time").get_parameter_value().integer_value
+        self.profile_acceleration = self.get_parameter("profile_acceleration").get_parameter_value().integer_value
+        self.profile_velocity = self.get_parameter("profile_velocity").get_parameter_value().integer_value
 
+        # Current limit that is set based on what type of dynamixel motor
         motor_ids = list(range(16))
         if self.dynamixel_type == "XC330-M288":
             self.dynamixel_mgr = XC330M288Manager(motor_ids, self.baud_rate, self.device_name)
@@ -91,6 +105,18 @@ class LeapHandNode(Node):
         # Currently operating mode is only set to current based position control!
         self.dynamixel_mgr.set_torque_disable(self.dynamixel_mgr.motor_ids) # Disable torques prior to changing settings
         self.dynamixel_mgr.set_current_based_position_mode(self.dynamixel_mgr.motor_ids)
+
+        # Experimental Setters
+        self.dynamixel_mgr.set_velocity_limit(self.dynamixel_mgr.motor_ids, 0)
+        self.dynamixel_mgr.set_return_delay_time(self.dynamixel_mgr.motor_ids, 250)
+        self.dynamixel_mgr.set_profile_acceleration(self.dynamixel_mgr.motor_ids, 0)
+        self.dynamixel_mgr.set_profile_velocity(self.dynamixel_mgr.motor_ids, 0)
+
+        self.dynamixel_mgr.set_velocity_limit(self.dynamixel_mgr.motor_ids, 50)
+        self.dynamixel_mgr.set_return_delay_time(self.dynamixel_mgr.motor_ids, 100)
+        self.dynamixel_mgr.set_profile_acceleration(self.dynamixel_mgr.motor_ids, 5)
+        self.dynamixel_mgr.set_profile_velocity(self.dynamixel_mgr.motor_ids, 50)
+        
         self.dynamixel_mgr.set_min_position_deg(self.dynamixel_mgr.motor_ids, self.min_position_deg)
         self.dynamixel_mgr.set_max_position_deg(self.dynamixel_mgr.motor_ids, self.max_position_deg)
         self.dynamixel_mgr.set_current_limit(self.dynamixel_mgr.motor_ids, np.ones(len(motor_ids))
