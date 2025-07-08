@@ -107,16 +107,11 @@ class LeapHandNode(Node):
         self.dynamixel_mgr.set_current_based_position_mode(self.dynamixel_mgr.motor_ids)
 
         # Experimental Setters
-        self.dynamixel_mgr.set_velocity_limit(self.dynamixel_mgr.motor_ids, 0)
-        self.dynamixel_mgr.set_return_delay_time(self.dynamixel_mgr.motor_ids, 250)
-        self.dynamixel_mgr.set_profile_acceleration(self.dynamixel_mgr.motor_ids, 0)
-        self.dynamixel_mgr.set_profile_velocity(self.dynamixel_mgr.motor_ids, 0)
+        self.dynamixel_mgr.set_velocity_limit(self.dynamixel_mgr.motor_ids, self.velocity_limit)
+        self.dynamixel_mgr.set_return_delay_time(self.dynamixel_mgr.motor_ids, self.return_delay_time)
+        self.dynamixel_mgr.set_profile_acceleration(self.dynamixel_mgr.motor_ids, self.profile_acceleration)
+        self.dynamixel_mgr.set_profile_velocity(self.dynamixel_mgr.motor_ids, self.profile_velocity)
 
-        self.dynamixel_mgr.set_velocity_limit(self.dynamixel_mgr.motor_ids, 50)
-        self.dynamixel_mgr.set_return_delay_time(self.dynamixel_mgr.motor_ids, 100)
-        self.dynamixel_mgr.set_profile_acceleration(self.dynamixel_mgr.motor_ids, 5)
-        self.dynamixel_mgr.set_profile_velocity(self.dynamixel_mgr.motor_ids, 50)
-        
         self.dynamixel_mgr.set_min_position_deg(self.dynamixel_mgr.motor_ids, self.min_position_deg)
         self.dynamixel_mgr.set_max_position_deg(self.dynamixel_mgr.motor_ids, self.max_position_deg)
         self.dynamixel_mgr.set_current_limit(self.dynamixel_mgr.motor_ids, np.ones(len(motor_ids))
