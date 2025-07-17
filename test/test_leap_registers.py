@@ -5,6 +5,7 @@ import pytest
 
 # Test Parameters
 position_mode_enum = 3
+current_mode_enum = 0
 current_based_position_enum = 5
 baud_rate_3M_enum = 5 # Equivalent to 3M [bps]
 baud_rate_2M_enum = 4 # Equivalent to 2M [bps]
@@ -92,6 +93,15 @@ def test_position_mode_enable(dynamixel_manager):
     assert truth_operating_mode.tolist() == test_operating_mode
     time.sleep(test_delay)
 
+def test_current_mode_enable(dynamixel_manager):
+    dynamixel_manager.set_torque_disable(dynamixel_manager.motor_ids)
+    truth_operating_mode = np.ones(len(dynamixel_manager.motor_ids)) * current_mode_enum # current-based position control mode
+    dynamixel_manager.set_current_mode(dynamixel_manager.motor_ids)
+    dynamixel_manager.set_torque_enable(dynamixel_manager.motor_ids)
+    test_operating_mode = dynamixel_manager.get_operating_mode(dynamixel_manager.motor_ids)
+    assert truth_operating_mode.tolist() == test_operating_mode
+    time.sleep(test_delay)
+
 def test_current_based_position_mode_enable(dynamixel_manager):
     dynamixel_manager.set_torque_disable(dynamixel_manager.motor_ids)
     truth_operating_mode = np.ones(len(dynamixel_manager.motor_ids)) * current_based_position_enum # current-based position control mode
@@ -145,6 +155,17 @@ def test_current(dynamixel_manager):
     print(test_current)
     assert all([abs(val) <= max_curr_limit for val in test_current]), "current is less than +- motors maximum current limit"
     time.sleep(test_delay)
+
+def test_goal_current(dynamixel_manager):
+    dynamixel_manager.set_torque_disable(dynamixel_manager.motor_ids)
+    dynamixel_manager.set_current_mode(dynamixel_manager.motor_ids)
+    dynamixel_manager.set_torque_enable(dynamixel_manager.motor_ids)
+    truth_goal_current_mA = [50, -50, 50, -50, 30, 20, 10, 15, 32, -35, -15, 28, 14, 12, 1, 0]
+    dynamixel_manager.set_goal_current_mA(dynamixel_manager.motor_ids, truth_goal_current_mA)
+    time.sleep(2.0)
+    test_goal_current_mA = dynamixel_manager.get_goal_current_mA(dynamixel_manager.motor_ids)
+    print(test_goal_current_mA)
+    assert truth_goal_current_mA == test_goal_current_mA
 
 def test_velocity(dynamixel_manager):
     dynamixel_manager.set_torque_disable(dynamixel_manager.motor_ids)
