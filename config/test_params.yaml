@@ -2,7 +2,7 @@ baud_rate: 3000000
 device_name: /dev/serial/by-id/usb-FTDI_USB__-__Serial_Converter_FT4NQ6SW-if00-port0
 kD: 0
 kI: 0
-kP: [4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 6.0, 6.0, 4.0, 4.0]
+kP: [4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 6.0, 4.0, 4.0, 4.0]
 percent_current_limit: 75
 pub_current: false
 pub_pos: true

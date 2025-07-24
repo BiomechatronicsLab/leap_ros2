@@ -1,16 +1,17 @@
 baud_rate: 3000000
-device_name: /dev/serial/by-id/usb-FTDI_USB__-__Serial_Converter_FT4NQ6SW-if00-port0
-kD: 0
-kI: 0
-kP: [4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 6.0, 6.0, 4.0, 4.0]
-percent_current_limit: 75
+device_name: /dev/serial/by-id/usb-FTDI_USB__-__Serial_Converter_FT3R45P2-if00-port0
+kD: [0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05]
+# kD: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+kI: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+kP: [3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.5, 3.0, 3.0, 3.0]
+percent_current_limit: 100
 pub_current: false
 pub_pos: true
 pub_vel: false
 start_pos_deg: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 joint_feedback_topic: /dom/end_eff/feedback_joint_states
 joint_command_topic: /dom/end_eff/command_joint_states
-dynamixel_type: "XC330-M288"
+dynamixel_type: "XL330-M288"
 min_position_deg: [0.0, -30.0, 0.0, 0.0, 0.0, -30.0, 0.0, 0.0, 0.0, -30.0, 0.0, 0.0, 0.0, -60.0, 0.0, 0.0]
 max_position_deg: [90.0, 30.0, 90.0, 90.0, 90.0, 30.0, 90.0, 90.0, 90.0, 30.0, 90.0, 90.0, 90.0, 60.0, 90.0, 90.0]
 velocity_limit: 50
