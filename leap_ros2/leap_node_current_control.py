@@ -21,7 +21,7 @@ class LeapHandCurrentNode(Node):
         self.declare_parameter("pub_pos", True)
         self.declare_parameter("pub_vel", False)
         self.declare_parameter("pub_current", False)
-        self.declare_parameter("kP", 0.1)
+        self.declare_parameter("kP", [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1])
         self.declare_parameter("kI", 0)
         self.declare_parameter("kD", 0)
         self.declare_parameter("start_pos_deg", [0.0] * 16)
@@ -62,13 +62,12 @@ class LeapHandCurrentNode(Node):
         self.pub_pos = self.get_parameter("pub_pos").get_parameter_value().bool_value
         self.pub_vel = self.get_parameter("pub_vel").get_parameter_value().bool_value
         self.pub_current = self.get_parameter("pub_current").get_parameter_value().bool_value
-        self.kP = self.get_parameter("kP").get_parameter_value().double_value
-        self.kI = self.get_parameter("kI").get_parameter_value().double_value
+        self.kP = self.get_parameter("kP").get_parameter_value().double_array_value
+        self.kI = self.get_parameter("kI").get_parameter_value().double_array_value
         self.kD = self.get_parameter("kD").get_parameter_value().double_value
         self.start_pos_deg = self.get_parameter("start_pos_deg").get_parameter_value().double_array_value
         self.min_position_deg = self.get_parameter('min_position_deg').get_parameter_value().double_array_value
         self.max_position_deg = self.get_parameter('max_position_deg').get_parameter_value().double_array_value
-
         # Experimental Parameters
         self.velocity_limit = self.get_parameter("velocity_limit").get_parameter_value().integer_value 
         self.return_delay_time = self.get_parameter("return_delay_time").get_parameter_value().integer_value
@@ -118,16 +117,35 @@ class LeapHandCurrentNode(Node):
                                               * self.dynamixel_mgr.max_curr_limit * (self.percent_current_limit/100))
         self.dynamixel_mgr.set_torque_enable(self.dynamixel_mgr.motor_ids)
 
-        # Set initial position
-        self.dynamixel_mgr.set_goal_position_deg(self.dynamixel_mgr.motor_ids, self.start_pos_deg)
+        self.desired_pos_deg = self.start_pos_deg
 
-        # TODO: This frequency could be an exposed config parameter - currently goes to 72 hertz which is used for the metaquest for ONR
-        timer_period = 1.0 / 72.0
+        # # Set initial position (NEED TO DO THIS DIFFERENTLY SOMEHOW? TO SET INITIAL POS?)
+        # self.dynamixel_mgr.set_goal_position_deg(self.dynamixel_mgr.motor_ids, self.start_pos_deg)
+
+        # TODO: This frequency could be an exposed config parameter, arbitrarily assigned currently
+        timer_period = 1.0 / 100.0
         self.timer = self.create_timer(timer_period, self.read_and_publish_data)
 
     def __del__(self):
         del self.dynamixel_mgr # Kill dynamixel manager object        
  
+    def control_action(self, curr_pos_deg):
+        try:
+            # print(self.desired_pos_deg)
+            print(self.kP)
+            pos_error_deg = (self.desired_pos_deg - np.array(curr_pos_deg))
+            # print(error)
+            control_action = np.array(self.kP) * pos_error_deg
+            goal_curr_mA_arr = control_action * np.ones(len(self.dynamixel_mgr.motor_ids))
+
+            for ind, goal_curr in enumerate(goal_curr_mA_arr):
+                if abs(goal_curr) > self.percent_current_limit/100 * self.dynamixel_mgr.max_curr_limit:
+                    goal_curr_mA_arr[ind] = np.sign(self.percent_current_limit/100 * self.dynamixel_mgr.max_curr_limit)
+            
+            self.dynamixel_mgr.set_goal_current_mA(self.dynamixel_mgr.motor_ids, goal_curr_mA_arr)
+        except Exception as e:
+            self.get_logger().error(f"Error in control action: {str(e)}")
+
     def read_and_publish_data(self):
         try:
             joint_state_msg = JointState()
@@ -154,8 +172,10 @@ class LeapHandCurrentNode(Node):
                         error_present = False
                         self.dynamixel_mgr.set_torque_enable(errored_motors)
 
+            curr_pos_deg = self.dynamixel_mgr.get_position_deg(self.dynamixel_mgr.motor_ids)
+
             if self.pub_pos:
-                joint_state_msg.position = self.dynamixel_mgr.get_position_deg(self.dynamixel_mgr.motor_ids)
+                joint_state_msg.position = curr_pos_deg
             if self.pub_vel:
                 velocity_readings = self.dynamixel_mgr.get_velocity(self.dynamixel_mgr.motor_ids)
                 # because of the two's compliments, have to convert from a list of ints to a list of floats!
@@ -165,23 +185,12 @@ class LeapHandCurrentNode(Node):
                 # because of the two's compliments, have to convert from a list of ints to a list of floats!
                 joint_state_msg.effort = list(map(float, current_readings))
             self.publisher.publish(joint_state_msg)
+            self.control_action(curr_pos_deg)
 
         except Exception as e:
             self.get_logger().error(f"Error reading and publishing data: {str(e)}")
 
     def command_callback(self, msg):
-        try:
-            desired_pos = msg.position
-            curr_pos = np.array(self.dynamixel_mgr.get_position_deg(self.dynamixel_mgr.motor_ids))
-            error = (desired_pos - curr_pos)
-            # print(error)
-            control_action = self.kP * error
-            goal_curr_mA_arr = control_action * np.ones(len(self.dynamixel_mgr.motor_ids))
-
-            for ind, goal_curr in enumerate(goal_curr_mA_arr):
-                if abs(goal_curr) > self.percent_current_limit/100 * self.dynamixel_mgr.max_curr_limit:
-                    goal_curr_mA_arr[ind] = np.sign(self.percent_current_limit/100 * self.dynamixel_mgr.max_curr_limit)
-            
-            self.dynamixel_mgr.set_goal_current_mA(self.dynamixel_mgr.motor_ids, goal_curr_mA_arr)
-        except Exception as e:
-            self.get_logger().error(f"Error in command callback: {str(e)}")
+        
+        # Update desired_pos_deg 
+        self.desired_pos_deg = msg.position 
