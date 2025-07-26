@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 
 import rclpy
-from leap_ros2.leap_node import LeapHandNode
+from leap_ros2.leap_node_current_position_control import LeapHandCurrentPositionNode
 
 def main(args=None):
     rclpy.init(args=args)
 
-    leap_hand = LeapHandNode()
+    leap_hand = LeapHandCurrentPositionNode()
 
     try:
         rclpy.spin(leap_hand)

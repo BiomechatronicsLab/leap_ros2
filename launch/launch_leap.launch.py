@@ -5,6 +5,7 @@ from launch import LaunchDescription
 from launch_ros.actions import Node
 from launch.substitutions import LaunchConfiguration
 from launch.actions import DeclareLaunchArgument, OpaqueFunction
+import time
 
 def load_yaml_file(file_path):
     # Print the path to the YAML file
@@ -23,15 +24,31 @@ def launch_setup(context, *args, **kwargs):
 
     # Load parameters from the YAML file
     config_params = load_yaml_file(config_file_path)
+    # print(config_params)
+
+    # TODO: parse which control mode it is, and then based on the control mode, load all the parameters into parameters as expected and send over to node
+    general_params = config_params["general_params"]
+    control_mode = general_params["control_mode"]
+
+    if control_mode == "current_control":
+        control_params = config_params["current_control_params"]
+        leap_node_exec_name = "leap_current_control_driver.py"
+        
+    elif control_mode == "current_based_position_control": # Default to current_based_position_control_mode? 
+        control_params = config_params["current_based_position_control_params"]
+        leap_node_exec_name = "leap_current_position_control_driver.py"
+    else:
+        raise KeyError("Incorrect control mode specified!")
+    general_params.update(control_params)
 
     return [
         Node(
             package='leap_ros2',
-            executable='leap_driver.py',
+            executable=leap_node_exec_name,
             output="screen",
             emulate_tty=True,
             name='leap_node',
-            parameters=[config_params]  # Pass the loaded parameters here
+            parameters=[general_params]  # Pass the loaded parameters here
             
         ),
     ]

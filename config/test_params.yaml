@@ -1,3 +1,5 @@
+# TODO: needs to be updated so that unit tests are compatible with new config file structure
+
 baud_rate: 3000000
 device_name: /dev/serial/by-id/usb-FTDI_USB__-__Serial_Converter_FT4NQ6SW-if00-port0
 kD: 0

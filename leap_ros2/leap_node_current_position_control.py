@@ -7,7 +7,7 @@ from dynamixel_driver.XC330_M288_manager import XC330M288Manager
 from dynamixel_driver.XL330_M288_manager import XL330M288Manager
 import time
 
-class LeapHandNode(Node):
+class LeapHandCurrentPositionNode(Node):
     def __init__(self, test_flag=False, node_name="leap_ros2_node"):
         super().__init__(node_name)
 
@@ -45,7 +45,6 @@ class LeapHandNode(Node):
         self.joint_feedback_topic = self.get_parameter("joint_feedback_topic").get_parameter_value().string_value
         self.baud_rate = self.get_parameter("baud_rate").get_parameter_value().integer_value
         
-        print(self.baud_rate)
         self.device_name = self.get_parameter("device_name").get_parameter_value().string_value
         if self.device_name == "":
             raise ValueError(
