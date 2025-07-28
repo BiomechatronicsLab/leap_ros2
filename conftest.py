@@ -28,7 +28,7 @@ def dynamixel_manager(config_params):
         
     elif config_params["dynamixel_type"] == "XL330-M288":
         dynamixel_mgr = XL330M288Manager(motors_ids, baud_rate, device_name)
-    
+        
     yield dynamixel_mgr
 
 @pytest.fixture(autouse=True, scope="session")

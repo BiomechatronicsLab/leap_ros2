@@ -3,7 +3,7 @@ import pytest
 from sensor_msgs.msg import JointState
 import time
 from rclpy.node import Node
-from leap_ros2.leap_node import LeapHandNode 
+from leap_ros2.leap_node_current_position_control import LeapHandCurrentPositionNode 
 from test_utilities.suspendable_thread import SuspendableThread 
 from test_utilities.parameter_utility import ParameterSetter
 
@@ -48,7 +48,7 @@ def leap_msg_subscriber(config_params):
 
 @pytest.fixture
 def leap_ros2_node_and_thread():
-    leap_ros2_node = LeapHandNode(test_flag=True, node_name=node_name)
+    leap_ros2_node = LeapHandCurrentPositionNode(test_flag=True, node_name=node_name)
     executor = SingleThreadedExecutor()
     executor.add_node(leap_ros2_node)
 

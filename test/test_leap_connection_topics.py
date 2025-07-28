@@ -19,7 +19,7 @@ def launch_leap_ros2_node(config_params):
         [
             launch_ros.actions.Node(
                 package="leap_ros2",
-                executable='leap_driver.py',
+                executable='leap_current_position_control_driver.py',
                 name=node_name,
                 output="screen",
                 parameters=[config_params],

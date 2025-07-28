@@ -29,7 +29,7 @@ def launch_leap_ros2_node(config_params):
     return LaunchDescription([
         launch_ros.actions.Node(
             package='leap_ros2',  #
-            executable='leap_driver.py',  
+            executable='leap_current_position_control_driver.py',
             name=node_name,
             output='screen',
             parameters=[config_params]
@@ -37,7 +37,7 @@ def launch_leap_ros2_node(config_params):
         launch_testing.actions.ReadyToTest()
     ])
 
-@pytest.fixture
+@pytest.fixture 
 def parameter_getter():
     parameter_getter = ParameterGetter(node_name)
     yield parameter_getter
@@ -46,7 +46,7 @@ def parameter_getter():
 
 @pytest.mark.launch(fixture=launch_leap_ros2_node)
 def test_params(config_params, parameter_getter):
-    time.sleep(1)
+    time.sleep(5) # let parameter server start
 
     # Only checks configuration information set in the config file
     params_to_check = list(config_params.keys())

@@ -29,20 +29,23 @@ def command_and_check_position(dynamixel_manager, truth_goal_position_deg, toler
     return all(comparison_result)
 
 def test_reboot(dynamixel_manager):
-    truth_reboot = np.zeros(len(dynamixel_manager.motor_ids)) # Will return 0 
-    test_reboot = dynamixel_manager.reboot_motors(dynamixel_manager.motor_ids) # Will return 0 if all motors are working
-    errored_motors = [i for i, val in enumerate(test_reboot) if val != 0]
+    truth_reboot = np.ones(len(dynamixel_manager.motor_ids)) # Will return 0 
+    test_reboot = dynamixel_manager.reboot_motors(dynamixel_manager.motor_ids) # Will return all working motors
 
+    errored_motors = [i for i, val in enumerate(test_reboot) if val is not True]
     if errored_motors:
         test_reboot = dynamixel_manager.reboot_motors(dynamixel_manager.motor_ids) # If there are any errors, check again if errors exist
 
     assert truth_reboot.tolist() == test_reboot
+    time.sleep(test_delay)
+
 
 def test_hardware_errors(dynamixel_manager):
     truth_errors = np.zeros(len(dynamixel_manager.motor_ids))
     test_errors = dynamixel_manager.get_hardware_error_status(dynamixel_manager.motor_ids)
     print(test_errors)
     assert truth_errors.tolist() == test_errors, "Hardware status not reading correctly!"
+    time.sleep(test_delay)
 
 # TODO: need to add setting dynamixel position min / max
 
