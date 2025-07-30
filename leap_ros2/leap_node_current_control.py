@@ -90,47 +90,29 @@ class LeapHandCurrentNode(Node):
             JointState, self.joint_command_topic, self.command_callback, 10
         )
 
-        error_status = self.dynamixel_mgr.get_hardware_error_status(self.dynamixel_mgr.motor_ids)
-        errored_motors = []
-        errored_motors = [i for i, val in enumerate(error_status) if val != 0]
-
+        errored_motors = self.get_errored_motors()
         if errored_motors:
-            print("Motor error on startup! Resetting!")
-            error_present = True
+            self.motor_reset(errored_motors)
 
-            # TODO: IF A MOTOR ERRORS -> CHOOSE SPECIFIC MOTOR TO THEN APPLY TRAJECTORY TO RESET... TBD HOW TO DO THIS!
-            # PERHAPS USE THE TRAJECTORY FUNCTION PREVIOUSLY CREATED?
-
-            while error_present:
-                self.dynamixel_mgr.set_goal_current_mA(self.dynamixel_mgr.motor_ids, np.zeros(len(self.dynamixel_mgr.motor_ids)))
-                self.dynamixel_mgr.set_torque_disable(self.dynamixel_mgr.motor_ids) # Disable torques prior to changing settings
-                success_arr = self.dynamixel_mgr.reboot_motors(errored_motors) # Allow driver to reset motors prior to bootup and settings change
-                print(success_arr)
-                if all(success_arr):
-                    error_present = False
-                    self.dynamixel_mgr.set_torque_enable(errored_motors)
-
-        # STARTUP SEQUENCE:
-        # TODO: INSERT A GENERIC FUNCTION THAT STARTS THE LEAP HAND IN POSITION CONTROL + SOME TRAJECTORY
-        print("Starting Sequence")
+        print("Begining Start-up Sequence")  # using current-based position mode
         self.dynamixel_mgr.set_torque_disable(self.dynamixel_mgr.motor_ids) # Disable torques prior to changing settings
         self.initialize_position_gains(600, 0, 0)
         self.dynamixel_mgr.set_velocity_limit(self.dynamixel_mgr.motor_ids, 100)
         self.dynamixel_mgr.set_profile_acceleration(self.dynamixel_mgr.motor_ids, 20)
         self.dynamixel_mgr.set_profile_velocity(self.dynamixel_mgr.motor_ids, 100)
-
         self.dynamixel_mgr.set_current_based_position_mode(self.dynamixel_mgr.motor_ids)
         self.dynamixel_mgr.set_torque_enable(self.dynamixel_mgr.motor_ids)
-        self.dynamixel_mgr.set_goal_position_deg(self.dynamixel_mgr.motor_ids, self.start_pos_deg)
+        self.curr_pos_deg = self.dynamixel_mgr.get_position_deg(self.dynamixel_mgr.motor_ids)
+        trajectories = self.make_trajectory(100, motor_ids, self.curr_pos_deg, self.start_pos_deg)
+        self.execute_trajectory(0.01, motor_ids, trajectories)
 
-        # CURRENT CONTROL ACTIVATED!!!
         print("Current Control Begin!")
         # Initialize gains and operating mode
         # Currently operating mode is only set to current based position control!
         self.dynamixel_mgr.set_torque_disable(self.dynamixel_mgr.motor_ids) # Disable torques prior to changing settings
         self.dynamixel_mgr.set_current_mode(self.dynamixel_mgr.motor_ids)
 
-        # Experimental Setters
+        # Configuration
         self.dynamixel_mgr.set_return_delay_time(self.dynamixel_mgr.motor_ids, self.return_delay_time)
         self.dynamixel_mgr.set_min_position_deg(self.dynamixel_mgr.motor_ids, self.min_position_deg)
         self.dynamixel_mgr.set_max_position_deg(self.dynamixel_mgr.motor_ids, self.max_position_deg)
@@ -151,7 +133,6 @@ class LeapHandCurrentNode(Node):
         del self.dynamixel_mgr # Kill dynamixel manager object        
  
     def initialize_position_gains(self, kP, kI, kD):
-            
             try:
                 kP = np.ones(len(self.dynamixel_mgr.motor_ids)) * self.kP                
                 kI = np.ones(len(self.dynamixel_mgr.motor_ids)) * self.kI
@@ -162,7 +143,54 @@ class LeapHandCurrentNode(Node):
             except Exception as e:
                 self.get_logger().error(f"Error initializing gains: {str(e)}")
 
-    # TODO: INSERT HERE TRAJECTORY CREATION ? 
+    def make_trajectory(self, num_points, motor_ids, current_position, goal_position):
+       
+        current_position = np.array(current_position)
+        goal_position = np.array(goal_position)
+        
+        if len(current_position) != len(motor_ids) or len(goal_position) != len(motor_ids):
+            raise ValueError("Position array length must match number of motor_ids")
+        
+        num_motors = len(motor_ids)
+        trajectories = np.zeros((num_points, num_motors))
+        
+        for i in range(num_motors):
+            start_pos = current_position[i]
+            end_pos = goal_position[i]
+            
+            # Generate linear trajectory (constant velocity)
+            trajectory = np.linspace(start_pos, end_pos, num_points)
+            trajectories[:, i] = trajectory
+        
+        return trajectories
+
+    def execute_trajectory(self, delay, id, trajectories):
+        for i in range(len(trajectories)):
+            self.dynamixel_mgr.set_goal_position_deg(id, trajectories[i,:])
+            time.sleep(delay)
+
+    def get_errored_motors(self):
+        hardware_error_status = self.dynamixel_mgr.get_hardware_error_status(self.dynamixel_mgr.motor_ids)
+        errored_motors = []
+        errored_motors = [i for i, val in enumerate(hardware_error_status) if val != 0]
+        return errored_motors
+
+    def motor_reset(self, errored_motors):
+        print("These motors are errored, resetting!", errored_motors)
+        error_present = True
+        while error_present:
+            self.dynamixel_mgr.set_goal_current_mA(errored_motors, np.zeros(len(errored_motors)))
+            self.dynamixel_mgr.set_torque_disable(errored_motors) # Disable torques prior to changing settings
+            time.sleep(0.25) # give some time to have the torques disabled
+
+            success_arr = self.dynamixel_mgr.reboot_motors(errored_motors)
+            time.sleep(0.75) # give some time for the motors to be rebooted
+            errored_motors = self.get_errored_motors()
+
+            if not errored_motors:
+                print("Motors should be reset")
+                error_present = False
+                self.dynamixel_mgr.set_torque_enable(errored_motors)
 
     def control_action(self, curr_pos_deg):
         try:
@@ -195,28 +223,13 @@ class LeapHandCurrentNode(Node):
             # By constantly setting the torque to be re-enabled, it will avoid the case where when rebooting the motor,
             # the command is somehow missed (likely due to time taken when rebooting)
             # Potentially a jank work around, but TBD if this is the policy we should use for the hand
-
             self.dynamixel_mgr.set_torque_enable(self.dynamixel_mgr.motor_ids) 
 
-            # # Check for errors! 
-            hardware_motors = self.dynamixel_mgr.get_hardware_error_status(self.dynamixel_mgr.motor_ids)
-            errored_motors = []
-            errored_motors = [i for i, val in enumerate(hardware_motors) if val != 0]
-
-            # TODO: IF A MOTOR ERRORS -> CHOOSE SPECIFIC MOTOR TO THEN APPLY TRAJECTORY TO RESET... TBD HOW TO DO THIS!
-            # PERHAPS USE THE TRAJECTORY FUNCTION PREVIOUSLY CREATED?
+            # Check for errored motors
+            errored_motors = self.get_errored_motors()
 
             if errored_motors:
-                print("These motors are errored, resetting!", errored_motors)
-                error_present = True
-                while error_present:
-                    self.dynamixel_mgr.set_goal_current_mA(self.dynamixel_mgr.motor_ids, np.zeros(len(self.dynamixel_mgr.motor_ids)))
-                    self.dynamixel_mgr.set_torque_disable(self.dynamixel_mgr.motor_ids) # Disable torques prior to changing settings
-                    success_arr = self.dynamixel_mgr.reboot_motors(errored_motors)
-                    print(success_arr)
-                    if all(success_arr):
-                        error_present = False
-                        self.dynamixel_mgr.set_torque_enable(errored_motors)
+                self.motor_reset(errored_motors)
 
             curr_pos_deg = self.dynamixel_mgr.get_position_deg(self.dynamixel_mgr.motor_ids)
 
@@ -231,7 +244,9 @@ class LeapHandCurrentNode(Node):
                 # because of the two's compliments, have to convert from a list of ints to a list of floats!
                 joint_state_msg.effort = list(map(float, current_readings))
             self.publisher.publish(joint_state_msg)
-            self.control_action(curr_pos_deg)
+
+            if not errored_motors:
+                self.control_action(curr_pos_deg)
 
         except Exception as e:
             self.get_logger().error(f"Error reading and publishing data: {str(e)}")
