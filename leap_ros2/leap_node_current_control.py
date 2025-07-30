@@ -90,9 +90,36 @@ class LeapHandCurrentNode(Node):
             JointState, self.joint_command_topic, self.command_callback, 10
         )
 
-        self.dynamixel_mgr.reboot_motors(self.dynamixel_mgr.motor_ids) # Allow driver to reset motors prior to bootup and settings change
-        time.sleep(1.0) # Wait for boot sequence to clear
+        error_status = self.dynamixel_mgr.get_hardware_error_status(self.dynamixel_mgr.motor_ids)
+        errored_motors = []
+        errored_motors = [i for i, val in enumerate(error_status) if val != 0]
 
+        if errored_motors:
+            print("Motor error on startup! Resetting!")
+            error_present = True
+
+            while error_present:
+                self.dynamixel_mgr.set_goal_current_mA(self.dynamixel_mgr.motor_ids, np.zeros(len(self.dynamixel_mgr.motor_ids)))
+                self.dynamixel_mgr.set_torque_disable(self.dynamixel_mgr.motor_ids) # Disable torques prior to changing settings
+                success_arr = self.dynamixel_mgr.reboot_motors(errored_motors) # Allow driver to reset motors prior to bootup and settings change
+                print(success_arr)
+                if all(success_arr):
+                    error_present = False
+                    self.dynamixel_mgr.set_torque_enable(errored_motors)
+
+        # STARTUP SEQUENCE:
+        print("Starting Sequence")
+        self.dynamixel_mgr.set_torque_disable(self.dynamixel_mgr.motor_ids) # Disable torques prior to changing settings
+        self.initialize_position_gains(600, 0, 0)
+        self.dynamixel_mgr.set_velocity_limit(self.dynamixel_mgr.motor_ids, 100)
+        self.dynamixel_mgr.set_profile_acceleration(self.dynamixel_mgr.motor_ids, 20)
+        self.dynamixel_mgr.set_profile_velocity(self.dynamixel_mgr.motor_ids, 100)
+
+        self.dynamixel_mgr.set_current_based_position_mode(self.dynamixel_mgr.motor_ids)
+        self.dynamixel_mgr.set_torque_enable(self.dynamixel_mgr.motor_ids)
+        self.dynamixel_mgr.set_goal_position_deg(self.dynamixel_mgr.motor_ids, self.start_pos_deg)
+
+        print("Current Control Begin!")
         # Initialize gains and operating mode
         # Currently operating mode is only set to current based position control!
         self.dynamixel_mgr.set_torque_disable(self.dynamixel_mgr.motor_ids) # Disable torques prior to changing settings
@@ -118,6 +145,19 @@ class LeapHandCurrentNode(Node):
     def __del__(self):
         del self.dynamixel_mgr # Kill dynamixel manager object        
  
+    def initialize_position_gains(self, kP, kI, kD):
+            
+            # TODO: These gains don't need to necessarily be set this way - this is legacy implementation.
+            try:
+                kP = np.ones(len(self.dynamixel_mgr.motor_ids)) * self.kP                
+                kI = np.ones(len(self.dynamixel_mgr.motor_ids)) * self.kI
+                kD = np.ones(len(self.dynamixel_mgr.motor_ids)) * self.kD
+
+                self.dynamixel_mgr.initialize_gains(self.dynamixel_mgr.motor_ids, kP, kI, kD)
+
+            except Exception as e:
+                self.get_logger().error(f"Error initializing gains: {str(e)}")
+
     def control_action(self, curr_pos_deg):
         try:
 
@@ -152,7 +192,7 @@ class LeapHandCurrentNode(Node):
 
             self.dynamixel_mgr.set_torque_enable(self.dynamixel_mgr.motor_ids) 
 
-            # Check for errors! 
+            # # Check for errors! 
             hardware_motors = self.dynamixel_mgr.get_hardware_error_status(self.dynamixel_mgr.motor_ids)
             errored_motors = []
             errored_motors = [i for i, val in enumerate(hardware_motors) if val != 0]
@@ -161,6 +201,8 @@ class LeapHandCurrentNode(Node):
                 print("These motors are errored, resetting!", errored_motors)
                 error_present = True
                 while error_present:
+                    self.dynamixel_mgr.set_goal_current_mA(self.dynamixel_mgr.motor_ids, np.zeros(len(self.dynamixel_mgr.motor_ids)))
+                    self.dynamixel_mgr.set_torque_disable(self.dynamixel_mgr.motor_ids) # Disable torques prior to changing settings
                     success_arr = self.dynamixel_mgr.reboot_motors(errored_motors)
                     print(success_arr)
                     if all(success_arr):
