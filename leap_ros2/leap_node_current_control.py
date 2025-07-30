@@ -98,6 +98,9 @@ class LeapHandCurrentNode(Node):
             print("Motor error on startup! Resetting!")
             error_present = True
 
+            # TODO: IF A MOTOR ERRORS -> CHOOSE SPECIFIC MOTOR TO THEN APPLY TRAJECTORY TO RESET... TBD HOW TO DO THIS!
+            # PERHAPS USE THE TRAJECTORY FUNCTION PREVIOUSLY CREATED?
+
             while error_present:
                 self.dynamixel_mgr.set_goal_current_mA(self.dynamixel_mgr.motor_ids, np.zeros(len(self.dynamixel_mgr.motor_ids)))
                 self.dynamixel_mgr.set_torque_disable(self.dynamixel_mgr.motor_ids) # Disable torques prior to changing settings
@@ -108,6 +111,7 @@ class LeapHandCurrentNode(Node):
                     self.dynamixel_mgr.set_torque_enable(errored_motors)
 
         # STARTUP SEQUENCE:
+        # TODO: INSERT A GENERIC FUNCTION THAT STARTS THE LEAP HAND IN POSITION CONTROL + SOME TRAJECTORY
         print("Starting Sequence")
         self.dynamixel_mgr.set_torque_disable(self.dynamixel_mgr.motor_ids) # Disable torques prior to changing settings
         self.initialize_position_gains(600, 0, 0)
@@ -119,6 +123,7 @@ class LeapHandCurrentNode(Node):
         self.dynamixel_mgr.set_torque_enable(self.dynamixel_mgr.motor_ids)
         self.dynamixel_mgr.set_goal_position_deg(self.dynamixel_mgr.motor_ids, self.start_pos_deg)
 
+        # CURRENT CONTROL ACTIVATED!!!
         print("Current Control Begin!")
         # Initialize gains and operating mode
         # Currently operating mode is only set to current based position control!
@@ -147,7 +152,6 @@ class LeapHandCurrentNode(Node):
  
     def initialize_position_gains(self, kP, kI, kD):
             
-            # TODO: These gains don't need to necessarily be set this way - this is legacy implementation.
             try:
                 kP = np.ones(len(self.dynamixel_mgr.motor_ids)) * self.kP                
                 kI = np.ones(len(self.dynamixel_mgr.motor_ids)) * self.kI
@@ -157,6 +161,8 @@ class LeapHandCurrentNode(Node):
 
             except Exception as e:
                 self.get_logger().error(f"Error initializing gains: {str(e)}")
+
+    # TODO: INSERT HERE TRAJECTORY CREATION ? 
 
     def control_action(self, curr_pos_deg):
         try:
@@ -196,6 +202,9 @@ class LeapHandCurrentNode(Node):
             hardware_motors = self.dynamixel_mgr.get_hardware_error_status(self.dynamixel_mgr.motor_ids)
             errored_motors = []
             errored_motors = [i for i, val in enumerate(hardware_motors) if val != 0]
+
+            # TODO: IF A MOTOR ERRORS -> CHOOSE SPECIFIC MOTOR TO THEN APPLY TRAJECTORY TO RESET... TBD HOW TO DO THIS!
+            # PERHAPS USE THE TRAJECTORY FUNCTION PREVIOUSLY CREATED?
 
             if errored_motors:
                 print("These motors are errored, resetting!", errored_motors)
