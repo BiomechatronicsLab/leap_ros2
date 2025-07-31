@@ -92,7 +92,7 @@ class LeapHandCurrentNode(Node):
 
         errored_motors = self.get_errored_motors()
         if errored_motors:
-            self.motor_reset(errored_motors)
+            self.motor_reset()
 
         print("Begining Start-up Sequence")  # using current-based position mode
         self.dynamixel_mgr.set_torque_disable(self.dynamixel_mgr.motor_ids) # Disable torques prior to changing settings
@@ -110,6 +110,7 @@ class LeapHandCurrentNode(Node):
         # Initialize gains and operating mode
         # Currently operating mode is only set to current based position control!
         self.dynamixel_mgr.set_torque_disable(self.dynamixel_mgr.motor_ids) # Disable torques prior to changing settings
+        self.dynamixel_mgr.set_goal_current_mA(errored_motors, np.zeros(len(errored_motors))) # turn off any previous goal currents
         self.dynamixel_mgr.set_current_mode(self.dynamixel_mgr.motor_ids)
 
         # Configuration
@@ -124,6 +125,7 @@ class LeapHandCurrentNode(Node):
         self.desired_pos_deg = self.start_pos_deg
         self.integral = 0
         self.previous_error = self.desired_pos_deg - np.array(self.dynamixel_mgr.get_position_deg(self.dynamixel_mgr.motor_ids))
+        self.previous_time = self.get_clock().now()
 
         # TODO: This frequency could be an exposed config parameter, arbitrarily assigned currently
         self.timer_period = 1.0 / 100.0
@@ -175,42 +177,45 @@ class LeapHandCurrentNode(Node):
         errored_motors = [i for i, val in enumerate(hardware_error_status) if val != 0]
         return errored_motors
 
-    def motor_reset(self, errored_motors):
-        print("These motors are errored, resetting!", errored_motors)
+    def motor_reset(self):
+        print("These motors are errored, resetting!")
         error_present = True
         while error_present:
-            self.dynamixel_mgr.set_goal_current_mA(errored_motors, np.zeros(len(errored_motors)))
-            self.dynamixel_mgr.set_torque_disable(errored_motors) # Disable torques prior to changing settings
-            time.sleep(0.25) # give some time to have the torques disabled
-
-            success_arr = self.dynamixel_mgr.reboot_motors(errored_motors)
-            time.sleep(0.75) # give some time for the motors to be rebooted
             errored_motors = self.get_errored_motors()
 
             if not errored_motors:
                 print("Motors should be reset")
                 error_present = False
                 self.dynamixel_mgr.set_torque_enable(errored_motors)
+                time.sleep(0.25)
+            else:
+                self.dynamixel_mgr.set_goal_current_mA(errored_motors, np.zeros(len(errored_motors)))
+                self.dynamixel_mgr.set_torque_disable(errored_motors) # Disable torques prior to changing settings
+                time.sleep(0.25) # give some time to have the torques disabled
+
+                self.dynamixel_mgr.reboot_motors(errored_motors)
+                time.sleep(0.5) # give some time for the motors to be rebooted
 
     def control_action(self, curr_pos_deg):
         try:
-
             # Calculate per dt errors
             pos_error_deg = (self.desired_pos_deg - np.array(curr_pos_deg))
 
-            # TODO: redo with actual timer period ? 
-            self.integral += pos_error_deg * self.timer_period
-            derivate = (pos_error_deg - self.previous_error) / self.timer_period
+            curr_time = self.get_clock().now()
+            duration = curr_time - self.previous_time
+            timer_period = duration.nanoseconds / 1e9 # convert to seconds
+            self.integral += pos_error_deg * timer_period
+            derivate = (pos_error_deg - self.previous_error) / timer_period
 
             # Add Ki, Kd
             control_action = np.array(self.kP) * pos_error_deg + np.array(self.kI) * self.integral + np.array(self.kD) * derivate 
             goal_curr_mA_arr = control_action * np.ones(len(self.dynamixel_mgr.motor_ids))
-
-            for ind, goal_curr in enumerate(goal_curr_mA_arr):
-                if abs(goal_curr) > self.percent_current_limit/100 * self.dynamixel_mgr.max_curr_limit:
-                    goal_curr_mA_arr[ind] = np.sign(self.percent_current_limit/100 * self.dynamixel_mgr.max_curr_limit)
+            max_curr_mA = self.percent_current_limit/100 * self.dynamixel_mgr.max_curr_limit
+            goal_curr_mA_arr = np.clip(goal_curr_mA_arr, -max_curr_mA, max_curr_mA)
             
             self.dynamixel_mgr.set_goal_current_mA(self.dynamixel_mgr.motor_ids, goal_curr_mA_arr)
+            # print(goal_curr_mA_arr)
+            self.previous_time = curr_time
             self.previous_error = pos_error_deg
         except Exception as e:
             self.get_logger().error(f"Error in control action: {str(e)}")
@@ -223,13 +228,13 @@ class LeapHandCurrentNode(Node):
             # By constantly setting the torque to be re-enabled, it will avoid the case where when rebooting the motor,
             # the command is somehow missed (likely due to time taken when rebooting)
             # Potentially a jank work around, but TBD if this is the policy we should use for the hand
-            self.dynamixel_mgr.set_torque_enable(self.dynamixel_mgr.motor_ids) 
+            self.dynamixel_mgr.set_torque_enable(self.dynamixel_mgr.motor_ids)
 
             # Check for errored motors
             errored_motors = self.get_errored_motors()
 
             if errored_motors:
-                self.motor_reset(errored_motors)
+                self.motor_reset()
 
             curr_pos_deg = self.dynamixel_mgr.get_position_deg(self.dynamixel_mgr.motor_ids)
 
